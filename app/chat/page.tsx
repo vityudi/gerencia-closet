@@ -1,0 +1,57 @@
+"use client"
+
+import { useState } from 'react'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { toast } from "sonner"
+
+export default function ChatPage() {
+  const [message, setMessage] = useState("")
+  const [history, setHistory] = useState<{ role: 'user' | 'assistant'; content: string }[]>([])
+
+  async function sendMessage() {
+    if (!message.trim()) return
+    const current = message
+    setMessage("")
+    setHistory((h) => [...h, { role: 'user', content: current }])
+    try {
+      const res = await fetch('/api/mcp/message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: current })
+      })
+      if (!res.ok) throw new Error('Falha ao contatar MCP')
+      const data = await res.json()
+      setHistory((h) => [...h, { role: 'assistant', content: data.reply ?? 'Sem resposta' }])
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Erro inesperado')
+    }
+  }
+
+  return (
+    <main className="p-6 grid gap-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Agente Conversacional (MCP)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 mb-4 max-h-[50vh] overflow-auto border rounded p-3">
+            {history.map((m, idx) => (
+              <div key={idx} className="text-sm">
+                <span className="font-medium">{m.role === 'user' ? 'Você' : 'Assistente'}: </span>
+                <span>{m.content}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <Input placeholder="Digite sua mensagem..." value={message} onChange={(e) => setMessage(e.target.value)} onKeyDown={(e) => e.key === 'Enter' ? sendMessage() : null} />
+            <Button onClick={sendMessage}>Enviar</Button>
+          </div>
+        </CardContent>
+      </Card>
+    </main>
+  )
+}
+
+
