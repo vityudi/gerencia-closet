@@ -1,7 +1,33 @@
 import { createSupabaseServiceClient } from '@/lib/supabase/server'
 
+type TestResults = {
+  env?: {
+    hasSupabaseUrl: boolean
+    hasServiceKey: boolean
+    hasAnonKey: boolean
+    supabaseUrl?: string
+    nodeEnv?: string
+    vercelEnv?: string
+    isVercel: boolean
+  }
+  stores?: {
+    success: boolean
+    error: string | null
+    count: number
+    data: unknown[]
+  }
+  products?: {
+    success: boolean
+    error: string | null
+    code?: string | null
+    count: number
+    data: unknown[]
+  }
+  globalError?: string
+}
+
 export default async function VercelTestPage() {
-  let results: any = {}
+  const results: TestResults = {}
   
   try {
     const supabase = createSupabaseServiceClient()
@@ -30,10 +56,11 @@ export default async function VercelTestPage() {
         count: stores?.length || 0,
         data: stores || []
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : 'Unknown error'
       results.stores = {
         success: false,
-        error: e.message,
+        error: errorMessage,
         count: 0,
         data: []
       }
@@ -53,17 +80,19 @@ export default async function VercelTestPage() {
         count: products?.length || 0,
         data: products || []
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : 'Unknown error'
       results.products = {
         success: false,
-        error: e.message,
+        error: errorMessage,
         count: 0,
         data: []
       }
     }
     
-  } catch (error: any) {
-    results.globalError = error.message
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    results.globalError = errorMessage
   }
   
   return (
