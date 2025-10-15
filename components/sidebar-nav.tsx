@@ -7,7 +7,7 @@ import { Home, MessageCircle, Package, Users, ShoppingCart, Settings } from 'luc
 
 const items = [
   { href: '/dashboard', label: 'Visão geral', icon: Home, color: 'text-blue-600' },
-  { href: '/chat', label: 'MCP Chat', icon: MessageCircle, color: 'text-emerald-600' },
+  { href: '/dashboard/chat', label: 'Chat', icon: MessageCircle, color: 'text-emerald-600' },
   { href: '/dashboard/products', label: 'Produtos', icon: Package, color: 'text-purple-600' },
   { href: '/dashboard/customers', label: 'Clientes', icon: Users, color: 'text-rose-600' },
   { href: '/dashboard/sales', label: 'Vendas', icon: ShoppingCart, color: 'text-amber-600' },

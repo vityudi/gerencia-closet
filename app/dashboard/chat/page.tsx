@@ -31,28 +31,30 @@ export default function ChatPage() {
   }
 
   return (
-    <main className="p-6 grid gap-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Agente Conversacional (MCP)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2 mb-4 max-h-[50vh] overflow-auto border rounded p-3">
-            {history.map((m, idx) => (
-              <div key={idx} className="text-sm">
-                <span className="font-medium">{m.role === 'user' ? 'Você' : 'Assistente'}: </span>
-                <span>{m.content}</span>
-              </div>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <Input placeholder="Digite sua mensagem..." value={message} onChange={(e) => setMessage(e.target.value)} onKeyDown={(e) => e.key === 'Enter' ? sendMessage() : null} />
-            <Button onClick={sendMessage}>Enviar</Button>
-          </div>
-        </CardContent>
-      </Card>
+    <main className="p-6">
+      <h1 className="text-2xl font-semibold">Chat</h1>
+      <p className="text-muted-foreground mt-2">Agente conversacional (MCP) para suporte.</p>
+      <div className="mt-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Agente Conversacional</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 mb-4 max-h-[50vh] overflow-auto border rounded p-3">
+              {history.map((m, idx) => (
+                <div key={idx} className="text-sm">
+                  <span className="font-medium">{m.role === 'user' ? 'Você' : 'Assistente'}: </span>
+                  <span>{m.content}</span>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <Input placeholder="Digite sua mensagem..." value={message} onChange={(e) => setMessage(e.target.value)} onKeyDown={(e) => e.key === 'Enter' ? sendMessage() : null} />
+              <Button onClick={sendMessage}>Enviar</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </main>
   )
 }
-
-
