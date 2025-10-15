@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useStore } from '@/contexts/store-context'
 import { useSyncStoreWithUrl } from '@/hooks/use-store'
 
@@ -12,7 +12,7 @@ type Product = {
   stock: number
 }
 
-export default function ProductsPage() {
+function ProductsPageContent() {
   const { selectedStore } = useStore()
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -93,6 +93,20 @@ export default function ProductsPage() {
         </div>
       )}
     </main>
+  )
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={
+      <main className="p-6">
+        <h1 className="text-2xl font-semibold">Produtos</h1>
+        <p className="text-muted-foreground mt-2">Catálogo de produtos por loja.</p>
+        <div className="mt-4 text-sm text-muted-foreground">Carregando...</div>
+      </main>
+    }>
+      <ProductsPageContent />
+    </Suspense>
   )
 }
 
