@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 
 export const metadata: Metadata = {
-  title: "Maison ERP",
-  description: "ERP SaaS com MCP e Supabase",
+  title: "Gerencia Closet",
+  description: "ERP de gestão completo para lojas de roupas",
 };
 
 export default function RootLayout({
