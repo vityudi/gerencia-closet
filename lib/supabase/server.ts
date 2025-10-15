@@ -25,9 +25,22 @@ export async function createSupabaseServerClient() {
 export function createSupabaseServiceClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string
+  
+  console.log('Environment check:', {
+    hasSupabaseUrl: !!supabaseUrl,
+    hasServiceKey: !!serviceKey,
+    supabaseUrlLength: supabaseUrl?.length || 0,
+    serviceKeyLength: serviceKey?.length || 0,
+    nodeEnv: process.env.NODE_ENV,
+    vercelEnv: process.env.VERCEL_ENV
+  })
+  
   if (!supabaseUrl || !serviceKey) {
-    throw new Error('Defina NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY no ambiente')
+    const error = `Missing environment variables: ${!supabaseUrl ? 'NEXT_PUBLIC_SUPABASE_URL ' : ''}${!serviceKey ? 'SUPABASE_SERVICE_ROLE_KEY' : ''}`
+    console.error(error)
+    throw new Error(error)
   }
+  
   return createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } })
 }
 

@@ -6,9 +6,12 @@ type TestResults = {
     hasServiceKey: boolean
     hasAnonKey: boolean
     supabaseUrl?: string
+    serviceKeyPrefix?: string
+    anonKeyPrefix?: string
     nodeEnv?: string
     vercelEnv?: string
     isVercel: boolean
+    allEnvKeys?: string[]
   }
   stores?: {
     success: boolean
@@ -38,9 +41,14 @@ export default async function VercelTestPage() {
       hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
       hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30) + '...',
+      serviceKeyPrefix: process.env.SUPABASE_SERVICE_ROLE_KEY?.substring(0, 20) + '...',
+      anonKeyPrefix: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.substring(0, 20) + '...',
       nodeEnv: process.env.NODE_ENV,
       vercelEnv: process.env.VERCEL_ENV,
-      isVercel: !!process.env.VERCEL
+      isVercel: !!process.env.VERCEL,
+      allEnvKeys: Object.keys(process.env).filter(key => 
+        key.includes('SUPABASE') || key.includes('NEXT_PUBLIC')
+      ).sort()
     }
     
     // Test Supabase connection
