@@ -48,7 +48,7 @@ function CustomersPageContent() {
     }
 
     fetchCustomers()
-  }, [selectedStore?.id]) // Usar apenas o ID para evitar re-renders desnecessários
+  }, [selectedStore]) // Usar selectedStore completo para detectar mudanças
 
   if (!selectedStore) {
     return (

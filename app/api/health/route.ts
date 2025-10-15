@@ -9,6 +9,7 @@ export async function GET() {
     const { data: products, error: productsError } = await supabase.from('products').select('id').limit(1)
     const { data: customers, error: customersError } = await supabase.from('customers').select('id').limit(1)
     const { data: sales, error: salesError } = await supabase.from('sales').select('id').limit(1)
+    const { data: teamMembers, error: teamError } = await supabase.from('team_members').select('id').limit(1)
     
     const health = {
       status: 'ok',
@@ -35,6 +36,11 @@ export async function GET() {
             accessible: !salesError, 
             error: salesError?.message || null,
             count: sales?.length || 0 
+          },
+          team_members: { 
+            accessible: !teamError, 
+            error: teamError?.message || null,
+            count: teamMembers?.length || 0 
           }
         }
       },

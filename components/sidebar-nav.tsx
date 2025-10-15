@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { Home, MessageCircle, Package, Users, ShoppingCart, Settings } from 'lucide-react'
+import { Home, MessageCircle, Package, Users, ShoppingCart, Settings, UserCheck } from 'lucide-react'
 
 const items = [
   { href: '/dashboard', label: 'Visão geral', icon: Home, color: 'text-blue-600' },
@@ -11,6 +11,7 @@ const items = [
   { href: '/dashboard/products', label: 'Produtos', icon: Package, color: 'text-purple-600' },
   { href: '/dashboard/customers', label: 'Clientes', icon: Users, color: 'text-rose-600' },
   { href: '/dashboard/sales', label: 'Vendas', icon: ShoppingCart, color: 'text-amber-600' },
+  { href: '/dashboard/team', label: 'Equipe', icon: UserCheck, color: 'text-indigo-600' },
   { href: '/dashboard/settings', label: 'Configurações', icon: Settings, color: 'text-slate-600' },
 ]
 

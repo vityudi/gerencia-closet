@@ -59,7 +59,7 @@ export function StoreSelector() {
     return () => {
       isMounted = false
     }
-  }, []) // Remover todas as dependências que causam loop
+  }, [setIsLoading, setStores]) // Incluir as dependências necessárias
 
   // Separar a lógica de seleção inicial em outro useEffect
   useEffect(() => {
@@ -87,7 +87,7 @@ export function StoreSelector() {
       params.set('store_id', stores[0].id)
       router.replace(`?${params.toString()}`)
     }
-  }, [stores, search]) // Apenas stores e search como dependências
+  }, [stores, search, selectedStore, setSelectedStore, router]) // Incluir todas as dependências necessárias
 
   const handleStoreSelect = async (store: { id: string; name: string }) => {
     setSelectedStore(store)
