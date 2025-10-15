@@ -2,13 +2,14 @@ import { createSupabaseServiceClient } from '@/lib/supabase/server'
 
 export async function GET(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const supabase = createSupabaseServiceClient()
   const { data, error } = await supabase
     .from('products')
     .select('*')
-    .eq('store_id', params.id)
+    .eq('store_id', id)
     .order('created_at', { ascending: false })
 
   if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 })

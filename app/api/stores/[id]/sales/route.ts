@@ -2,14 +2,15 @@ import { createSupabaseServiceClient } from '@/lib/supabase/server'
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const { searchParams } = new URL(req.url)
   const from = searchParams.get('from')
   const to = searchParams.get('to')
 
   const supabase = createSupabaseServiceClient()
-  let query = supabase.from('sales').select('*').eq('store_id', params.id)
+  let query = supabase.from('sales').select('*').eq('store_id', id)
 
   if (from) query = query.gte('created_at', from)
   if (to) query = query.lte('created_at', to)

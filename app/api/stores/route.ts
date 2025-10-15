@@ -4,7 +4,7 @@ import { createSupabaseServiceClient } from '@/lib/supabase/server'
 const createStoreSchema = z.object({
   name: z.string().min(2),
   owner_user_id: z.string().uuid(),
-  metadata: z.record(z.any()).optional()
+  metadata: z.record(z.string(), z.any()).optional()
 })
 
 export async function GET() {
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     const { data, error } = await supabase.from('stores').insert(parsed.data).select('*').single()
     if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 })
     return Response.json(data)
-  } catch (e) {
+  } catch {
     return new Response(JSON.stringify({ error: 'Erro inesperado' }), { status: 500 })
   }
 }

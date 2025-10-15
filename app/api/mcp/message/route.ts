@@ -8,7 +8,7 @@ export async function POST(req: Request) {
     // Placeholder: integração com MCP real ocorrerá aqui
     const reply = `Você disse: ${message}`
     return Response.json({ reply, actions: [], trace_id: crypto.randomUUID() })
-  } catch (err) {
+  } catch {
     return new Response(JSON.stringify({ error: 'erro inesperado' }), { status: 500 })
   }
 }

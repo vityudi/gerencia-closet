@@ -1,5 +1,4 @@
-import Link from 'next/link'
-import { ReactNode } from 'react'
+import { ReactNode, Suspense } from 'react'
 import { Separator } from '@/components/ui/separator'
 import { StoreSelector } from '@/components/store-selector'
 import { SidebarNav } from '@/components/sidebar-nav'
@@ -13,7 +12,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <h2 className="text-lg font-semibold">Admin</h2>
         <Separator />
         <div className="flex items-center justify-between gap-2">
-          <StoreSelector />
+          <Suspense fallback={<div className="h-8 w-32 bg-gray-200 rounded animate-pulse" />}>
+            <StoreSelector />
+          </Suspense>
         </div>
         <SidebarNav />
       </aside>

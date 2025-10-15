@@ -24,8 +24,9 @@ export default function ChatPage() {
       if (!res.ok) throw new Error('Falha ao contatar MCP')
       const data = await res.json()
       setHistory((h) => [...h, { role: 'assistant', content: data.reply ?? 'Sem resposta' }])
-    } catch (err: any) {
-      toast.error(err?.message ?? 'Erro inesperado')
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro inesperado'
+      toast.error(errorMessage)
     }
   }
 
