@@ -1,58 +1,94 @@
-import { Suspense } from 'react'
-import { createSupabaseServiceClient } from '@/lib/supabase/server'
+"use client"
 
-async function CustomersList({ storeId }: { storeId: string }) {
-  const supabase = createSupabaseServiceClient()
-  const { data, error } = await supabase
-    .from('customers')
-    .select('id, full_name, email, phone, created_at')
-    .eq('store_id', storeId)
-    .order('created_at', { ascending: false })
+import { useEffect, useState } from 'react'
+import { useStore } from '@/contexts/store-context'
+import { useSyncStoreWithUrl } from '@/hooks/use-store'
 
-  if (error) {
-    console.error('Error fetching customers:', error)
-    console.error('Store ID:', storeId)
-    console.error('Environment:', process.env.NODE_ENV)
+type Customer = {
+  id: string
+  full_name: string
+  email?: string
+  phone?: string
+}
+
+export default function CustomersPage() {
+  const { selectedStore } = useStore()
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  
+  // Sincroniza store com URL
+  useSyncStoreWithUrl()
+
+  useEffect(() => {
+    if (!selectedStore) {
+      setCustomers([])
+      setError(null)
+      return
+    }
+
+    const fetchCustomers = async () => {
+      setIsLoading(true)
+      setError(null)
+      
+      try {
+        const res = await fetch(`/api/stores/${selectedStore.id}/customers`)
+        if (!res.ok) {
+          throw new Error('Falha ao carregar clientes')
+        }
+        const data = await res.json()
+        setCustomers(data.items || [])
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido'
+        setError(errorMessage)
+        setCustomers([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchCustomers()
+  }, [selectedStore?.id]) // Usar apenas o ID para evitar re-renders desnecessários
+
+  if (!selectedStore) {
     return (
-      <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded">
-        <div className="text-sm font-medium text-red-800">Erro ao carregar clientes</div>
-        <div className="text-xs text-red-600 mt-1">Store ID: {storeId}</div>
-        <div className="text-xs text-red-600">Error: {error.message}</div>
-        {error.code && <div className="text-xs text-red-600">Code: {error.code}</div>}
-      </div>
+      <main className="p-6">
+        <h1 className="text-2xl font-semibold">Clientes</h1>
+        <p className="text-muted-foreground mt-2">Lista e gestão de clientes.</p>
+        <div className="text-sm text-muted-foreground mt-4">Selecione uma loja para visualizar os clientes.</div>
+      </main>
     )
   }
 
-  const items = data as Array<{
-    id: string
-    full_name: string
-    email?: string
-    phone?: string
-  }>
-  return (
-    <div className="mt-4 space-y-2">
-      {items?.length ? items.map((c) => (
-        <div key={c.id} className="rounded border p-3">
-          <div className="font-medium">{c.full_name}</div>
-          <div className="text-sm text-muted-foreground">{c.email ?? '—'} • {c.phone ?? '—'}</div>
-        </div>
-      )) : <div className="text-sm text-muted-foreground">Nenhum cliente.</div>}
-    </div>
-  )
-}
-
-export default async function CustomersPage({ searchParams }: { searchParams: Promise<{ [key: string]: string }> }) {
-  const params = await searchParams
-  const storeId = params?.store_id
   return (
     <main className="p-6">
       <h1 className="text-2xl font-semibold">Clientes</h1>
       <p className="text-muted-foreground mt-2">Lista e gestão de clientes.</p>
-      {storeId ? (
-        <Suspense>
-          <CustomersList storeId={storeId} />
-        </Suspense>
-      ) : <div className="text-sm text-muted-foreground mt-4">Selecione uma loja para visualizar.</div>}
+      
+      {isLoading && (
+        <div className="mt-4 text-sm text-muted-foreground">Carregando clientes...</div>
+      )}
+      
+      {error && (
+        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded">
+          <div className="text-sm font-medium text-red-800">Erro ao carregar clientes</div>
+          <div className="text-xs text-red-600 mt-1">Loja: {selectedStore.name}</div>
+          <div className="text-xs text-red-600">Erro: {error}</div>
+        </div>
+      )}
+      
+      {!isLoading && !error && (
+        <div className="mt-4 space-y-2">
+          {customers.length ? customers.map((c) => (
+            <div key={c.id} className="rounded border p-3">
+              <div className="font-medium">{c.full_name}</div>
+              <div className="text-sm text-muted-foreground">{c.email ?? '—'} • {c.phone ?? '—'}</div>
+            </div>
+          )) : (
+            <div className="text-sm text-muted-foreground">Nenhum cliente encontrado.</div>
+          )}
+        </div>
+      )}
     </main>
   )
 }
