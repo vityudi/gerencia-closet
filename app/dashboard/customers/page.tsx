@@ -1,9 +1,20 @@
 import { Suspense } from 'react'
+import { createSupabaseServiceClient } from '@/lib/supabase/server'
 
 async function CustomersList({ storeId }: { storeId: string }) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/api/stores/${storeId}/customers`, { cache: 'no-store' })
-  const json = await res.json()
-  const items = json.items as Array<{
+  const supabase = createSupabaseServiceClient()
+  const { data, error } = await supabase
+    .from('customers')
+    .select('id, full_name, email, phone, created_at')
+    .eq('store_id', storeId)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching customers:', error)
+    return <div className="text-sm text-muted-foreground mt-4">Erro ao carregar clientes.</div>
+  }
+
+  const items = data as Array<{
     id: string
     full_name: string
     email?: string

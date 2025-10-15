@@ -8,10 +8,21 @@ const createStoreSchema = z.object({
 })
 
 export async function GET() {
-  const supabase = createSupabaseServiceClient()
-  const { data, error } = await supabase.from('stores').select('*').order('created_at', { ascending: false })
-  if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 })
-  return Response.json({ items: data ?? [] })
+  try {
+    const supabase = createSupabaseServiceClient()
+    const { data, error } = await supabase.from('stores').select('*').order('created_at', { ascending: false })
+    
+    if (error) {
+      console.error('Supabase error in stores GET:', error)
+      return new Response(JSON.stringify({ error: error.message, details: error }), { status: 500 })
+    }
+    
+    console.log('Stores fetched successfully:', data?.length || 0, 'items')
+    return Response.json({ items: data ?? [] })
+  } catch (err) {
+    console.error('Unexpected error in stores GET:', err)
+    return new Response(JSON.stringify({ error: 'Erro interno do servidor' }), { status: 500 })
+  }
 }
 
 export async function POST(req: Request) {

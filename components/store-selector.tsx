@@ -23,31 +23,44 @@ export function StoreSelector() {
   useEffect(() => {
     ;(async () => {
       try {
-        const initialFromUrl = search?.get('store_id')
-        if (initialFromUrl) setSelected(initialFromUrl)
+        console.log('Fetching stores...')
         const res = await fetch('/api/stores')
+        
         if (!res.ok) {
-          console.error('Falha ao carregar stores', await res.text())
+          const errorText = await res.text()
+          console.error('Falha ao carregar stores - Status:', res.status, 'Error:', errorText)
           setStores([])
           return
         }
+        
         const json = await res.json()
+        console.log('Stores API response:', json)
         const list = (json.items ?? []) as Store[]
         setStores(list)
-        // Seleciona a primeira store por padrão, se nada selecionado
-        if (!initialFromUrl && !selected && list.length > 0) {
+        console.log('Stores loaded:', list.length, 'stores')
+        
+        const initialFromUrl = search?.get('store_id')
+        console.log('Initial store ID from URL:', initialFromUrl)
+        
+        if (initialFromUrl && list.find(s => s.id === initialFromUrl)) {
+          console.log('Using store from URL:', initialFromUrl)
+          setSelected(initialFromUrl)
+        } else if (list.length > 0) {
+          console.log('Auto-selecting first store:', list[0].id)
           const firstId = list[0].id
           setSelected(firstId)
           const params = new URLSearchParams(search?.toString())
           params.set('store_id', firstId)
           router.replace(`?${params.toString()}`)
+        } else {
+          console.log('No stores available')
         }
       } catch (e) {
         console.error('Erro ao carregar stores', e)
         setStores([])
       }
     })()
-  }, [search, selected, router])
+  }, [search, router])
 
   useEffect(() => {
     // No local persistence. Selected store should be saved server-side via /api/user/store.
