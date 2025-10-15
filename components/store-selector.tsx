@@ -66,7 +66,12 @@ export function StoreSelector() {
     // No local persistence. Selected store should be saved server-side via /api/user/store.
   }, [selected])
 
-  const selectedName = useMemo(() => stores.find(s => s.id === selected)?.name ?? 'Selecionar loja', [stores, selected])
+  const selectedName = useMemo(() => {
+    const store = stores.find(s => s.id === selected)
+    if (store) return store.name
+    if (stores.length === 0) return 'Carregando lojas...'
+    return 'Selecionar loja'
+  }, [stores, selected])
 
   return (
     <DropdownMenu>
