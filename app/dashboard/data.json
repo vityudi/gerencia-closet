@@ -1,0 +1,92 @@
+[
+  {
+    "id": 1,
+    "produto": "Camiseta Básica",
+    "categoria": "Roupas",
+    "estoque": 150,
+    "preco": 29.90,
+    "status": "Em Estoque",
+    "vendas_mes": 45
+  },
+  {
+    "id": 2,
+    "produto": "Calça Jeans",
+    "categoria": "Roupas",
+    "estoque": 80,
+    "preco": 89.90,
+    "status": "Em Estoque",
+    "vendas_mes": 23
+  },
+  {
+    "id": 3,
+    "produto": "Tênis Esportivo",
+    "categoria": "Calçados",
+    "estoque": 25,
+    "preco": 199.90,
+    "status": "Estoque Baixo",
+    "vendas_mes": 12
+  },
+  {
+    "id": 4,
+    "produto": "Bolsa de Couro",
+    "categoria": "Acessórios",
+    "estoque": 0,
+    "preco": 149.90,
+    "status": "Sem Estoque",
+    "vendas_mes": 8
+  },
+  {
+    "id": 5,
+    "produto": "Vestido Elegante",
+    "categoria": "Roupas",
+    "estoque": 35,
+    "preco": 179.90,
+    "status": "Em Estoque",
+    "vendas_mes": 18
+  },
+  {
+    "id": 6,
+    "produto": "Jaqueta de Couro",
+    "categoria": "Roupas",
+    "estoque": 12,
+    "preco": 299.90,
+    "status": "Estoque Baixo",
+    "vendas_mes": 6
+  },
+  {
+    "id": 7,
+    "produto": "Sapato Social",
+    "categoria": "Calçados",
+    "estoque": 40,
+    "preco": 249.90,
+    "status": "Em Estoque",
+    "vendas_mes": 15
+  },
+  {
+    "id": 8,
+    "produto": "Cinto de Couro",
+    "categoria": "Acessórios",
+    "estoque": 60,
+    "preco": 49.90,
+    "status": "Em Estoque",
+    "vendas_mes": 22
+  },
+  {
+    "id": 9,
+    "produto": "Blusa de Seda",
+    "categoria": "Roupas",
+    "estoque": 0,
+    "preco": 129.90,
+    "status": "Sem Estoque",
+    "vendas_mes": 4
+  },
+  {
+    "id": 10,
+    "produto": "Sandália Feminina",
+    "categoria": "Calçados",
+    "estoque": 30,
+    "preco": 79.90,
+    "status": "Em Estoque",
+    "vendas_mes": 28
+  }
+]

@@ -1,37 +1,23 @@
 import { ReactNode, Suspense } from 'react'
-import { Separator } from '@/components/ui/separator'
-import { StoreSelector } from '@/components/store-selector'
-import { SidebarNav } from '@/components/sidebar-nav'
-import { ThemeToggle } from '@/components/theme-toggle'
-import { Breadcrumbs } from '@/components/breadcrumbs'
-import { SelectedStoreInfo } from '@/components/selected-store-info'
+import { AppSidebar } from '@/components/app-sidebar'
+import { SiteHeader } from '@/components/site-header'
 import { StoreProvider } from '@/contexts/store-context'
+import { SidebarProvider } from '@/components/ui/sidebar'
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <StoreProvider>
-      <div className="min-h-screen grid grid-cols-[240px_1fr]">
-        <aside className="border-r p-4 space-y-3">
-          <h2 className="text-lg font-semibold">Admin</h2>
-          <Separator />
-          <div className="flex items-center justify-between gap-2">
-            <Suspense fallback={<div className="h-8 w-32 bg-gray-200 rounded animate-pulse" />}>
-              <StoreSelector />
-            </Suspense>
+      <SidebarProvider>
+        <div className="flex min-h-screen w-full">
+          <AppSidebar />
+          <div className="flex flex-1 flex-col">
+            <SiteHeader />
+            <main className="flex-1 p-4">
+              {children}
+            </main>
           </div>
-          <SidebarNav />
-        </aside>
-        <section>
-          <header className="flex items-center justify-between p-4 border-b">
-            <div className="flex flex-col gap-1">
-              <Breadcrumbs />
-              <SelectedStoreInfo />
-            </div>
-            <ThemeToggle />
-          </header>
-          {children}
-        </section>
-      </div>
+        </div>
+      </SidebarProvider>
     </StoreProvider>
   )
 }
