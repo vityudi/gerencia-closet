@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useStore } from '@/contexts/store-context'
 import { useSyncStoreWithUrl } from '@/hooks/use-store'
+import { ProductsTable } from '@/components/products-table'
 
 type Product = {
   id: string
@@ -10,6 +11,7 @@ type Product = {
   sku: string
   price: number
   stock: number
+  created_at?: string
 }
 
 function ProductsPageContent() {
@@ -63,13 +65,15 @@ function ProductsPageContent() {
 
   return (
     <main className="p-6">
-      <h1 className="text-2xl font-semibold">Produtos</h1>
-      <p className="text-muted-foreground mt-2">Catálogo de produtos por loja.</p>
-      
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold">Produtos</h1>
+        <p className="text-muted-foreground mt-2">Catálogo de produtos por loja.</p>
+      </div>
+
       {isLoading && (
         <div className="mt-4 text-sm text-muted-foreground">Carregando produtos...</div>
       )}
-      
+
       {error && (
         <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded">
           <div className="text-sm font-medium text-red-800">Erro ao carregar produtos</div>
@@ -77,20 +81,9 @@ function ProductsPageContent() {
           <div className="text-xs text-red-600">Erro: {error}</div>
         </div>
       )}
-      
+
       {!isLoading && !error && (
-        <div className="mt-4 space-y-2">
-          {products.length ? products.map((p) => (
-            <div key={p.id} className="rounded border p-3">
-              <div className="font-medium">{p.name}</div>
-              <div className="text-sm text-muted-foreground">
-                SKU: {p.sku} • Preço: R$ {Number(p.price).toFixed(2)} • Estoque: {p.stock}
-              </div>
-            </div>
-          )) : (
-            <div className="text-sm text-muted-foreground">Nenhum produto encontrado.</div>
-          )}
-        </div>
+        <ProductsTable data={products} />
       )}
     </main>
   )

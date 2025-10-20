@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useStore } from '@/contexts/store-context'
 import { useSyncStoreWithUrl } from '@/hooks/use-store'
+import { SalesTable } from '@/components/sales-table'
 
 type Sale = {
   id: string
@@ -69,13 +70,15 @@ function SalesPageContent() {
 
   return (
     <main className="p-6">
-      <h1 className="text-2xl font-semibold">Vendas</h1>
-      <p className="text-muted-foreground mt-2">Pedidos e relatórios por período.</p>
-      
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold">Vendas</h1>
+        <p className="text-muted-foreground mt-2">Pedidos e relatórios por período.</p>
+      </div>
+
       {isLoading && (
         <div className="mt-4 text-sm text-muted-foreground">Carregando vendas...</div>
       )}
-      
+
       {error && (
         <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded">
           <div className="text-sm font-medium text-red-800">Erro ao carregar vendas</div>
@@ -83,50 +86,9 @@ function SalesPageContent() {
           <div className="text-xs text-red-600">Erro: {error}</div>
         </div>
       )}
-      
+
       {!isLoading && !error && (
-        <div className="mt-4 space-y-3">
-          {sales.length ? sales.map((s) => (
-            <div key={s.id} className="rounded border p-4">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="font-medium text-lg">
-                    R$ {Number(s.total).toFixed(2)}
-                  </div>
-                  <div className="text-sm text-muted-foreground mt-1">
-                    {new Date(s.created_at).toLocaleString('pt-BR')}
-                  </div>
-                  <div className="text-sm text-muted-foreground mt-1">
-                    Pagamento: {s.payment_method}
-                  </div>
-                  {s.team_members && (
-                    <div className="text-sm text-blue-600 mt-2">
-                      👤 Vendedor: {s.team_members.full_name} ({s.team_members.role})
-                    </div>
-                  )}
-                </div>
-                <div className={`px-3 py-1 rounded text-sm font-medium ${
-                  s.status === 'Concluída' 
-                    ? 'bg-green-100 text-green-800' 
-                    : s.status === 'Pendente'
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : s.status === 'Cancelada'
-                    ? 'bg-red-100 text-red-800'
-                    : 'bg-gray-100 text-gray-800'
-                }`}>
-                  {s.status}
-                </div>
-              </div>
-            </div>
-          )) : (
-            <div className="text-center py-12">
-              <div className="text-sm text-muted-foreground">Nenhuma venda encontrada.</div>
-              <div className="text-xs text-muted-foreground mt-1">
-                Esta loja ainda não possui vendas registradas.
-              </div>
-            </div>
-          )}
-        </div>
+        <SalesTable data={sales} />
       )}
     </main>
   )

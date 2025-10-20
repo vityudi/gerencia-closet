@@ -5,6 +5,8 @@ import {
   IconDotsVertical,
   IconEdit,
   IconTrash,
+  IconMail,
+  IconPhone,
   IconSearch,
 } from "@tabler/icons-react"
 import {
@@ -19,7 +21,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -38,59 +39,66 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-type Product = {
+type Customer = {
   id: string
-  name: string
-  sku: string
-  price: number
-  stock: number
+  full_name: string
+  email?: string
+  phone?: string
   created_at?: string
 }
 
-const columns: ColumnDef<Product>[] = [
+const columns: ColumnDef<Customer>[] = [
   {
-    accessorKey: "name",
-    header: "Produto",
+    accessorKey: "full_name",
+    header: "Nome Completo",
     cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("name")}</div>
+      <div className="font-medium">{row.getValue("full_name")}</div>
     ),
     filterFn: (row, id, value) => {
       const name = row.getValue(id) as string
-      const sku = row.getValue("sku") as string
+      const email = row.getValue("email") as string | undefined
+      const phone = row.getValue("phone") as string | undefined
       return name.toLowerCase().includes(value.toLowerCase()) ||
-             sku.toLowerCase().includes(value.toLowerCase())
+             (email?.toLowerCase().includes(value.toLowerCase()) ?? false) ||
+             (phone?.toLowerCase().includes(value.toLowerCase()) ?? false)
     },
   },
   {
-    accessorKey: "sku",
-    header: "SKU",
-    cell: ({ row }) => (
-      <Badge variant="outline">{row.getValue("sku")}</Badge>
-    ),
-  },
-  {
-    accessorKey: "stock",
-    header: "Estoque",
+    accessorKey: "email",
+    header: "E-mail",
     cell: ({ row }) => {
-      const stock = row.getValue("stock") as number
-      const variant = stock > 20 ? "default" : stock > 10 ? "secondary" : "destructive"
+      const email = row.getValue("email") as string | undefined
       return (
         <div className="flex items-center gap-2">
-          <Badge variant={variant}>{stock}</Badge>
+          {email ? (
+            <>
+              <IconMail className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm">{email}</span>
+            </>
+          ) : (
+            <span className="text-sm text-muted-foreground">—</span>
+          )}
         </div>
       )
     },
   },
   {
-    accessorKey: "price",
-    header: "Preço",
+    accessorKey: "phone",
+    header: "Telefone",
     cell: ({ row }) => {
-      const price = parseFloat(row.getValue("price"))
-      const formatted = new Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      }).format(price)
-      return <div className="text-right font-medium">{formatted}</div>
+      const phone = row.getValue("phone") as string | undefined
+      return (
+        <div className="flex items-center gap-2">
+          {phone ? (
+            <>
+              <IconPhone className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm">{phone}</span>
+            </>
+          ) : (
+            <span className="text-sm text-muted-foreground">—</span>
+          )}
+        </div>
+      )
     },
   },
   {
@@ -119,7 +127,7 @@ const columns: ColumnDef<Product>[] = [
   },
 ]
 
-export function ProductsTable({ data }: { data: Product[] }) {
+export function CustomersTable({ data }: { data: Customer[] }) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
@@ -144,10 +152,10 @@ export function ProductsTable({ data }: { data: Product[] }) {
         <div className="relative flex-1">
           <IconSearch className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por nome ou SKU..."
-            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+            placeholder="Buscar por nome, e-mail ou telefone..."
+            value={(table.getColumn("full_name")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
-              table.getColumn("name")?.setFilterValue(event.target.value)
+              table.getColumn("full_name")?.setFilterValue(event.target.value)
             }
             className="pl-8"
           />
@@ -196,7 +204,7 @@ export function ProductsTable({ data }: { data: Product[] }) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  Nenhum produto encontrado.
+                  Nenhum cliente encontrado.
                 </TableCell>
               </TableRow>
             )}
@@ -205,7 +213,7 @@ export function ProductsTable({ data }: { data: Product[] }) {
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredRowModel().rows.length} produto(s) total.
+          {table.getFilteredRowModel().rows.length} cliente(s) total.
         </div>
         <div className="flex items-center space-x-2">
           <Button

@@ -6,6 +6,8 @@ import {
   IconEdit,
   IconTrash,
   IconSearch,
+  IconUser,
+  IconCreditCard,
 } from "@tabler/icons-react"
 import {
   ColumnDef,
@@ -38,59 +40,104 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-type Product = {
+type Sale = {
   id: string
-  name: string
-  sku: string
-  price: number
-  stock: number
-  created_at?: string
+  total: number
+  created_at: string
+  payment_method: string
+  status: string
+  team_member_id?: string
+  team_members?: {
+    id: string
+    full_name: string
+    role: string
+  }
 }
 
-const columns: ColumnDef<Product>[] = [
+const columns: ColumnDef<Sale>[] = [
   {
-    accessorKey: "name",
-    header: "Produto",
-    cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("name")}</div>
-    ),
+    accessorKey: "created_at",
+    header: "Data/Hora",
+    cell: ({ row }) => {
+      const date = new Date(row.getValue("created_at"))
+      return (
+        <div className="text-sm">
+          <div className="font-medium">{date.toLocaleDateString("pt-BR")}</div>
+          <div className="text-muted-foreground text-xs">
+            {date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+          </div>
+        </div>
+      )
+    },
     filterFn: (row, id, value) => {
-      const name = row.getValue(id) as string
-      const sku = row.getValue("sku") as string
-      return name.toLowerCase().includes(value.toLowerCase()) ||
-             sku.toLowerCase().includes(value.toLowerCase())
+      const date = new Date(row.getValue(id) as string)
+      const dateStr = date.toLocaleDateString("pt-BR")
+      const timeStr = date.toLocaleTimeString("pt-BR")
+      const seller = row.original.team_members?.full_name || ""
+      const payment = row.getValue("payment_method") as string
+      const total = row.getValue("total") as number
+
+      return dateStr.includes(value.toLowerCase()) ||
+             timeStr.includes(value.toLowerCase()) ||
+             seller.toLowerCase().includes(value.toLowerCase()) ||
+             payment.toLowerCase().includes(value.toLowerCase()) ||
+             total.toString().includes(value)
     },
   },
   {
-    accessorKey: "sku",
-    header: "SKU",
-    cell: ({ row }) => (
-      <Badge variant="outline">{row.getValue("sku")}</Badge>
-    ),
+    accessorKey: "total",
+    header: "Valor",
+    cell: ({ row }) => {
+      const total = parseFloat(row.getValue("total"))
+      const formatted = new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      }).format(total)
+      return <div className="font-medium text-lg">{formatted}</div>
+    },
   },
   {
-    accessorKey: "stock",
-    header: "Estoque",
+    accessorKey: "payment_method",
+    header: "Pagamento",
     cell: ({ row }) => {
-      const stock = row.getValue("stock") as number
-      const variant = stock > 20 ? "default" : stock > 10 ? "secondary" : "destructive"
+      const method = row.getValue("payment_method") as string
       return (
         <div className="flex items-center gap-2">
-          <Badge variant={variant}>{stock}</Badge>
+          <IconCreditCard className="h-4 w-4 text-muted-foreground" />
+          <Badge variant="outline">{method}</Badge>
         </div>
       )
     },
   },
   {
-    accessorKey: "price",
-    header: "Preço",
+    id: "seller",
+    header: "Vendedor",
     cell: ({ row }) => {
-      const price = parseFloat(row.getValue("price"))
-      const formatted = new Intl.NumberFormat("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      }).format(price)
-      return <div className="text-right font-medium">{formatted}</div>
+      const seller = row.original.team_members
+      if (!seller) {
+        return <span className="text-sm text-muted-foreground">—</span>
+      }
+      return (
+        <div className="flex items-center gap-2">
+          <IconUser className="h-4 w-4 text-muted-foreground" />
+          <div className="text-sm">
+            <div className="font-medium">{seller.full_name}</div>
+            <div className="text-xs text-muted-foreground">{seller.role}</div>
+          </div>
+        </div>
+      )
+    },
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => {
+      const status = row.getValue("status") as string
+      const variant =
+        status === "Concluída" ? "default" :
+        status === "Pendente" ? "secondary" :
+        "destructive"
+      return <Badge variant={variant}>{status}</Badge>
     },
   },
   {
@@ -106,12 +153,12 @@ const columns: ColumnDef<Product>[] = [
         <DropdownMenuContent align="end">
           <DropdownMenuItem>
             <IconEdit className="mr-2 h-4 w-4" />
-            Editar
+            Ver detalhes
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem className="text-red-600">
             <IconTrash className="mr-2 h-4 w-4" />
-            Excluir
+            Cancelar
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -119,7 +166,7 @@ const columns: ColumnDef<Product>[] = [
   },
 ]
 
-export function ProductsTable({ data }: { data: Product[] }) {
+export function SalesTable({ data }: { data: Sale[] }) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
@@ -144,10 +191,10 @@ export function ProductsTable({ data }: { data: Product[] }) {
         <div className="relative flex-1">
           <IconSearch className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por nome ou SKU..."
-            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+            placeholder="Buscar por data, vendedor, pagamento ou valor..."
+            value={(table.getColumn("created_at")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
-              table.getColumn("name")?.setFilterValue(event.target.value)
+              table.getColumn("created_at")?.setFilterValue(event.target.value)
             }
             className="pl-8"
           />
@@ -196,7 +243,7 @@ export function ProductsTable({ data }: { data: Product[] }) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  Nenhum produto encontrado.
+                  Nenhuma venda encontrada.
                 </TableCell>
               </TableRow>
             )}
@@ -205,7 +252,7 @@ export function ProductsTable({ data }: { data: Product[] }) {
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredRowModel().rows.length} produto(s) total.
+          {table.getFilteredRowModel().rows.length} venda(s) total.
         </div>
         <div className="flex items-center space-x-2">
           <Button
