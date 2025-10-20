@@ -149,8 +149,137 @@ The dashboard uses a persistent layout (`app/dashboard/layout.tsx`) with:
 - `AppSidebar` with navigation links
 - `SiteHeader` with store selector and user menu
 
+### Dashboard Pages
+
+#### Products Page (`app/dashboard/products/page.tsx`)
+- Displays products in a table with search functionality
+- Search filters: product name, SKU
+- Columns: Product name, SKU, Stock (color-coded badges), Price (BRL), Actions
+- Uses `ProductsTable` component from `@/components/products-table.tsx`
+
+#### Customers Page (`app/dashboard/customers/page.tsx`)
+- Displays customers in a table with search functionality
+- Search filters: name, email, phone
+- Columns: Full name, Email (with icon), Phone (with icon), Actions
+- Uses `CustomersTable` component from `@/components/customers-table.tsx`
+
+#### Sales Page (`app/dashboard/sales/page.tsx`)
+- Displays sales in a table with search functionality
+- Search filters: date, time, seller name, payment method, amount
+- Columns: Date/Time, Value (BRL), Payment method, Seller (with role), Status (color-coded), Actions
+- Includes join with `team_members` to display seller information
+- Uses `SalesTable` component from `@/components/sales-table.tsx`
+
+#### Team Page (`app/dashboard/team/page.tsx`)
+- Displays team members with sales performance statistics
+- Shows member details: name, email, phone, role, hire date, status
+- Displays sales statistics: total sales, sales count, average ticket
+- Uses card-based layout (not table)
+
+#### Settings Page (`app/dashboard/settings/page.tsx`)
+**Purpose**: Central configuration hub for the entire application
+
+The settings page allows users to configure:
+
+1. **Product Properties Configuration**
+   - Define custom product attributes and fields
+   - Configure which product properties are displayed/hidden
+   - Set validation rules for product data
+   - Manage product categorization and SKU formats
+
+2. **Page-Specific Settings**
+   - Configure table columns visibility and order
+   - Set default filters and sorting preferences
+   - Customize pagination and display options
+   - Configure data refresh intervals
+
+3. **Integration Settings**
+   - **Messaging API**: Configure chat/messaging integrations for customer communication
+   - **Payment Gateways**: Set up payment method configurations
+   - **Email/SMS**: Configure notification services
+   - **Third-party APIs**: Manage external service integrations
+   - API keys and authentication credentials management
+
+4. **Store Configuration**
+   - Store-specific settings and preferences
+   - Business hours and operational parameters
+   - Tax and currency settings
+   - Multi-store synchronization options
+
+5. **User Preferences**
+   - Theme and display preferences
+   - Language and localization
+   - Notification preferences
+   - Dashboard customization
+
+**Implementation Notes**:
+- Settings should be scoped per store (use `store_id`)
+- Store settings in a dedicated `settings` or `store_settings` table in Supabase
+- Use form validation with Zod schemas
+- Consider using tabs or accordion for organizing different settings sections
+- Implement real-time updates when settings change (use Supabase real-time subscriptions)
+- Cache settings in React Context or local state for performance
+
+### Table Component Patterns
+
+All data tables follow a consistent pattern using TanStack Table v8:
+
+**Common Features**:
+- Search input with icon positioned inside the field
+- Multi-field filtering (searches across multiple columns)
+- Sortable columns
+- Pagination with "Anterior/Próximo" buttons
+- Item count display
+- Empty state handling
+- Actions dropdown menu on each row
+
+**Standard Table Structure**:
+```typescript
+// 1. Define type matching database schema
+type Item = {
+  id: string
+  // ... other fields
+}
+
+// 2. Define columns with custom filter functions
+const columns: ColumnDef<Item>[] = [
+  {
+    accessorKey: "field_name",
+    header: "Display Name",
+    cell: ({ row }) => <div>{row.getValue("field_name")}</div>,
+    filterFn: (row, id, value) => {
+      // Custom multi-field search logic
+      return field1.includes(value) || field2.includes(value)
+    },
+  },
+  // ... more columns
+]
+
+// 3. Use table hooks with filtering
+const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+const table = useReactTable({
+  data,
+  columns,
+  onColumnFiltersChange: setColumnFilters,
+  getFilteredRowModel: getFilteredRowModel(),
+  state: { columnFilters },
+  // ... other config
+})
+
+// 4. Render search input and table
+<Input
+  placeholder="Search across fields..."
+  value={(table.getColumn("main_field")?.getFilterValue() as string) ?? ""}
+  onChange={(event) => table.getColumn("main_field")?.setFilterValue(event.target.value)}
+  className="pl-8"
+/>
+```
+
 ### Development Notes
 - Next.js 15 uses async params: `const { id } = await params` in route handlers
 - TypeScript strict mode is enabled
 - ESLint configured with Next.js rules (typescript and core-web-vitals)
 - The project uses Tailwind CSS v4 with PostCSS
+- All currency values should be formatted as Brazilian Real (BRL) using `Intl.NumberFormat`
+- All dates should be formatted using pt-BR locale
+- Color-coded badges are used for status indicators across the application
