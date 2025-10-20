@@ -1,4 +1,4 @@
-import { ReactNode, Suspense } from 'react'
+import { ReactNode } from 'react'
 import { AppSidebar } from '@/components/app-sidebar'
 import { SiteHeader } from '@/components/site-header'
 import { StoreProvider } from '@/contexts/store-context'
