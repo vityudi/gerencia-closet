@@ -42,10 +42,10 @@ export function NavDocuments({
       <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Relatórios</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
-          <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton tooltip={item.name} asChild size="lg">
+          <SidebarMenuItem key={item.name} className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+            <SidebarMenuButton tooltip={item.name} asChild size="lg" className="group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:px-0">
               <Link href={item.url}>
-                <item.icon className="group-data-[collapsible=icon]:size-5" />
+                <item.icon className="group-data-[collapsible=icon]:size-6" />
                 <span className="group-data-[collapsible=icon]:hidden">{item.name}</span>
               </Link>
             </SidebarMenuButton>
