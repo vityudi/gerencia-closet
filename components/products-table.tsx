@@ -83,7 +83,9 @@ const columns: ColumnDef<Product>[] = [
   },
   {
     accessorKey: "price",
-    header: "Preço",
+    header: ({ column }) => (
+      <div className="text-right">Preço</div>
+    ),
     cell: ({ row }) => {
       const price = parseFloat(row.getValue("price"))
       const formatted = new Intl.NumberFormat("pt-BR", {
