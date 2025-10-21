@@ -226,7 +226,7 @@ export function NewSaleDialog({
           team_member_id: formData.team_member_id,
           payment_method: formData.payment_method,
           status: formData.status,
-          notes: formData.notes || null,
+          ...(formData.notes ? { notes: formData.notes } : {}),
           items: cart.map((item) => ({
             product_id: item.product_id,
             quantity: item.quantity,
@@ -236,7 +236,9 @@ export function NewSaleDialog({
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || "Erro ao criar venda")
+        console.error("Sale creation error:", error)
+        const detailsMessage = error.details ? `\n${JSON.stringify(error.details, null, 2)}` : ""
+        throw new Error((error.error || "Erro ao criar venda") + detailsMessage)
       }
 
       setFormData({

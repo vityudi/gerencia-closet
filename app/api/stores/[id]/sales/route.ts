@@ -1,15 +1,17 @@
 import { createSupabaseServiceClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 const createSaleSchema = z.object({
-  customer_id: z.string().uuid('ID do cliente inválido'),
-  team_member_id: z.string().uuid('ID do vendedor inválido'),
+  customer_id: z.string().regex(uuidRegex, 'ID do cliente inválido'),
+  team_member_id: z.string().regex(uuidRegex, 'ID do vendedor inválido'),
   payment_method: z.string().min(1, 'Método de pagamento é obrigatório'),
   status: z.enum(['Concluída', 'Pendente', 'Cancelada']).default('Concluída'),
   notes: z.string().optional(),
   items: z.array(
     z.object({
-      product_id: z.string().uuid('ID do produto inválido'),
+      product_id: z.string().regex(uuidRegex, 'ID do produto inválido'),
       quantity: z.number().positive('Quantidade deve ser maior que 0'),
     })
   ).min(1, 'Sale must have at least one product'),
