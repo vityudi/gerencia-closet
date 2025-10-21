@@ -83,7 +83,7 @@ const columns: ColumnDef<Product>[] = [
   },
   {
     accessorKey: "price",
-    header: ({ column }) => (
+    header: () => (
       <div className="text-right">Preço</div>
     ),
     cell: ({ row }) => {

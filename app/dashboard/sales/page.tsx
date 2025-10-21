@@ -24,9 +24,31 @@ function SalesPageContent() {
   const [sales, setSales] = useState<Sale[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
+
   // Sincroniza store com URL
   useSyncStoreWithUrl()
+
+  const fetchSales = async () => {
+    if (!selectedStore) return
+
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const res = await fetch(`/api/stores/${selectedStore.id}/sales`)
+      if (!res.ok) {
+        throw new Error('Falha ao carregar vendas')
+      }
+      const data = await res.json()
+      setSales(data.items || [])
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido'
+      setError(errorMessage)
+      setSales([])
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
     if (!selectedStore) {
@@ -35,28 +57,9 @@ function SalesPageContent() {
       return
     }
 
-    const fetchSales = async () => {
-      setIsLoading(true)
-      setError(null)
-      
-      try {
-        const res = await fetch(`/api/stores/${selectedStore.id}/sales`)
-        if (!res.ok) {
-          throw new Error('Falha ao carregar vendas')
-        }
-        const data = await res.json()
-        setSales(data.items || [])
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido'
-        setError(errorMessage)
-        setSales([])
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
     fetchSales()
-  }, [selectedStore]) // Usar selectedStore completo para detectar mudanças
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedStore?.id]) // Usar selectedStore.id para detectar mudanças
 
   if (!selectedStore) {
     return (
@@ -88,7 +91,11 @@ function SalesPageContent() {
       )}
 
       {!isLoading && !error && (
-        <SalesTable data={sales} />
+        <SalesTable
+          data={sales}
+          storeId={selectedStore?.id}
+          onSaleCreated={fetchSales}
+        />
       )}
     </main>
   )

@@ -39,6 +39,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { NewSaleDialog } from "@/components/new-sale-dialog"
 
 type Sale = {
   id: string
@@ -166,7 +167,13 @@ const columns: ColumnDef<Sale>[] = [
   },
 ]
 
-export function SalesTable({ data }: { data: Sale[] }) {
+interface SalesTableProps {
+  data: Sale[]
+  storeId?: string
+  onSaleCreated?: () => void
+}
+
+export function SalesTable({ data, storeId, onSaleCreated }: SalesTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
@@ -199,6 +206,9 @@ export function SalesTable({ data }: { data: Sale[] }) {
             className="pl-8"
           />
         </div>
+        {storeId && (
+          <NewSaleDialog storeId={storeId} onSaleCreated={onSaleCreated} />
+        )}
       </div>
       <div className="rounded-md border">
         <Table>
