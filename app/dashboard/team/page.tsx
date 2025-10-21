@@ -1,5 +1,7 @@
 "use client"
 
+export const dynamic = 'force-dynamic'
+
 import { useEffect, useState, Suspense } from 'react'
 import { useStore } from '@/contexts/store-context'
 import { useSyncStoreWithUrl } from '@/hooks/use-store'

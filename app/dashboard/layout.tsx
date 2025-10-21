@@ -1,13 +1,17 @@
+export const dynamic = 'force-dynamic'
+
 import { ReactNode } from 'react'
 import { AppSidebar } from '@/components/app-sidebar'
 import { SiteHeader } from '@/components/site-header'
 import { StoreProvider } from '@/contexts/store-context'
+import { CartProvider } from '@/contexts/cart-context'
 import { SidebarProvider } from '@/components/ui/sidebar'
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <StoreProvider>
-      <SidebarProvider>
+      <CartProvider>
+        <SidebarProvider>
         <div className="flex min-h-screen w-full">
           <AppSidebar />
           <div className="flex flex-1 flex-col">
@@ -17,7 +21,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </main>
           </div>
         </div>
-      </SidebarProvider>
+        </SidebarProvider>
+      </CartProvider>
     </StoreProvider>
   )
 }

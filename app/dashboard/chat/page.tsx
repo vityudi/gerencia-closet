@@ -1,12 +1,14 @@
 "use client"
 
-import { useState } from 'react'
+export const dynamic = 'force-dynamic'
+
+import { Suspense, useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
 
-export default function ChatPage() {
+function ChatContent() {
   const [message, setMessage] = useState("")
   const [history, setHistory] = useState<{ role: 'user' | 'assistant'; content: string }[]>([])
 
@@ -56,5 +58,13 @@ export default function ChatPage() {
         </Card>
       </div>
     </main>
+  )
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-muted-foreground">Carregando chat...</div>}>
+      <ChatContent />
+    </Suspense>
   )
 }

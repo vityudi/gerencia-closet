@@ -8,7 +8,11 @@ import {
   IconSearch,
   IconUser,
   IconCreditCard,
+  IconChevronDown,
+  IconChevronUp,
+  IconPlus,
 } from "@tabler/icons-react"
+import { useCart } from "@/contexts/cart-context"
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -39,7 +43,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { NewSaleDialog } from "@/components/new-sale-dialog"
+type SaleItem = {
+  id: string
+  product_id: string
+  quantity: number
+  unit_price: number
+  subtotal: number
+}
 
 type Sale = {
   id: string
@@ -48,14 +58,38 @@ type Sale = {
   payment_method: string
   status: string
   team_member_id?: string
+  customer_id?: string
   team_members?: {
     id: string
     full_name: string
     role: string
   }
+  customers?: {
+    id: string
+    full_name: string
+    email: string
+    phone: string
+  }
+  sale_items?: SaleItem[]
 }
 
 const columns: ColumnDef<Sale>[] = [
+  {
+    id: "expand",
+    header: "",
+    cell: ({ row }) => (
+      <button
+        onClick={() => row.toggleExpanded()}
+        className="p-0 h-8 w-8 flex items-center justify-center hover:bg-accent rounded"
+      >
+        {row.getIsExpanded() ? (
+          <IconChevronUp className="h-4 w-4" />
+        ) : (
+          <IconChevronDown className="h-4 w-4" />
+        )}
+      </button>
+    ),
+  },
   {
     accessorKey: "created_at",
     header: "Data/Hora",
@@ -75,14 +109,35 @@ const columns: ColumnDef<Sale>[] = [
       const dateStr = date.toLocaleDateString("pt-BR")
       const timeStr = date.toLocaleTimeString("pt-BR")
       const seller = row.original.team_members?.full_name || ""
+      const customer = row.original.customers?.full_name || ""
       const payment = row.getValue("payment_method") as string
       const total = row.getValue("total") as number
 
       return dateStr.includes(value.toLowerCase()) ||
              timeStr.includes(value.toLowerCase()) ||
              seller.toLowerCase().includes(value.toLowerCase()) ||
+             customer.toLowerCase().includes(value.toLowerCase()) ||
              payment.toLowerCase().includes(value.toLowerCase()) ||
              total.toString().includes(value)
+    },
+  },
+  {
+    id: "customer",
+    header: "Cliente",
+    cell: ({ row }) => {
+      const customer = row.original.customers
+      if (!customer) {
+        return <span className="text-sm text-muted-foreground">—</span>
+      }
+      return (
+        <div className="flex items-center gap-2">
+          <IconUser className="h-4 w-4 text-muted-foreground" />
+          <div className="text-sm">
+            <div className="font-medium">{customer.full_name}</div>
+            <div className="text-xs text-muted-foreground">{customer.email}</div>
+          </div>
+        </div>
+      )
     },
   },
   {
@@ -169,13 +224,15 @@ const columns: ColumnDef<Sale>[] = [
 
 interface SalesTableProps {
   data: Sale[]
-  storeId?: string
   onSaleCreated?: () => void
 }
 
-export function SalesTable({ data, storeId, onSaleCreated }: SalesTableProps) {
+export function SalesTable({ data, onSaleCreated }: SalesTableProps) {
+  const { setIsModalOpen, setDefaultTab } = useCart()
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+
+  const [expandedRows, setExpandedRows] = React.useState<Record<string, boolean>>({})
 
   const table = useReactTable({
     data,
@@ -192,13 +249,20 @@ export function SalesTable({ data, storeId, onSaleCreated }: SalesTableProps) {
     },
   })
 
+  const toggleRowExpanded = (rowId: string) => {
+    setExpandedRows((prev) => ({
+      ...prev,
+      [rowId]: !prev[rowId],
+    }))
+  }
+
   return (
     <div className="w-full space-y-4">
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <IconSearch className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por data, vendedor, pagamento ou valor..."
+            placeholder="Buscar por data, cliente, vendedor, pagamento ou valor..."
             value={(table.getColumn("created_at")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
               table.getColumn("created_at")?.setFilterValue(event.target.value)
@@ -206,9 +270,16 @@ export function SalesTable({ data, storeId, onSaleCreated }: SalesTableProps) {
             className="pl-8"
           />
         </div>
-        {storeId && (
-          <NewSaleDialog storeId={storeId} onSaleCreated={onSaleCreated} />
-        )}
+        <Button
+          className="gap-2"
+          onClick={() => {
+            setDefaultTab("add-product")
+            setIsModalOpen(true)
+          }}
+        >
+          <IconPlus className="h-4 w-4" />
+          Nova Venda
+        </Button>
       </div>
       <div className="rounded-md border">
         <Table>
@@ -233,19 +304,63 @@ export function SalesTable({ data, storeId, onSaleCreated }: SalesTableProps) {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
+                <React.Fragment key={row.id}>
+                  <TableRow
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {cell.column.id === "expand" ? (
+                          <button
+                            onClick={() => toggleRowExpanded(row.id)}
+                            className="p-0 h-8 w-8 flex items-center justify-center hover:bg-accent rounded"
+                          >
+                            {expandedRows[row.id] ? (
+                              <IconChevronUp className="h-4 w-4" />
+                            ) : (
+                              <IconChevronDown className="h-4 w-4" />
+                            )}
+                          </button>
+                        ) : (
+                          flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                  {expandedRows[row.id] && row.original.sale_items && row.original.sale_items.length > 0 && (
+                    <TableRow className="bg-muted/50">
+                      <TableCell colSpan={columns.length} className="p-4">
+                        <div className="space-y-2">
+                          <p className="font-semibold text-sm">Produtos ({row.original.sale_items.length}):</p>
+                          <div className="space-y-1">
+                            {row.original.sale_items.map((item) => (
+                              <div key={item.id} className="flex justify-between text-sm p-2 bg-background rounded border">
+                                <div className="flex-1">
+                                  <p className="font-medium">Produto ID: {item.product_id.slice(0, 8)}...</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {item.quantity}x {new Intl.NumberFormat("pt-BR", {
+                                      style: "currency",
+                                      currency: "BRL",
+                                    }).format(item.unit_price)}
+                                  </p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-medium">{new Intl.NumberFormat("pt-BR", {
+                                    style: "currency",
+                                    currency: "BRL",
+                                  }).format(item.subtotal)}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </React.Fragment>
               ))
             ) : (
               <TableRow>

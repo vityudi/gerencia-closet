@@ -1,5 +1,7 @@
 "use client"
 
+export const dynamic = 'force-dynamic'
+
 import { useEffect, useState, Suspense } from 'react'
 import { useStore } from '@/contexts/store-context'
 import { useSyncStoreWithUrl } from '@/hooks/use-store'
@@ -39,10 +41,16 @@ function SalesPageContent() {
       if (!res.ok) {
         throw new Error('Falha ao carregar vendas')
       }
-      const data = await res.json()
+      const text = await res.text()
+      if (!text) {
+        setSales([])
+        return
+      }
+      const data = JSON.parse(text)
       setSales(data.items || [])
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido'
+      console.error('Error fetching sales:', errorMessage)
       setError(errorMessage)
       setSales([])
     } finally {
@@ -93,7 +101,6 @@ function SalesPageContent() {
       {!isLoading && !error && (
         <SalesTable
           data={sales}
-          storeId={selectedStore?.id}
           onSaleCreated={fetchSales}
         />
       )}
