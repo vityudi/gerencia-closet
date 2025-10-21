@@ -16,6 +16,16 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
+// Color mapping for navigation items
+const iconColors: Record<string, string> = {
+  "Dashboard": "text-blue-500",
+  "Chat": "text-purple-500",
+  "Produtos": "text-orange-500",
+  "Clientes": "text-pink-500",
+  "Vendas": "text-green-500",
+  "Equipe": "text-cyan-500",
+}
+
 export function NavMain({
   items,
 }: {
@@ -81,7 +91,7 @@ export function NavMain({
             <SidebarMenuItem key={item.title} className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
               <SidebarMenuButton tooltip={item.title} asChild size="lg" className="group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:px-0">
                 <Link href={item.url}>
-                  {item.icon && <item.icon className="group-data-[collapsible=icon]:size-6" />}
+                  {item.icon && <item.icon className={`group-data-[collapsible=icon]:size-6 ${iconColors[item.title] || "text-foreground"}`} />}
                   <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
                 </Link>
               </SidebarMenuButton>

@@ -26,6 +26,12 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
+// Color mapping for documents section items
+const iconColors: Record<string, string> = {
+  "Relatórios": "text-indigo-500",
+  "Análises": "text-emerald-500",
+}
+
 export function NavDocuments({
   items,
 }: {
@@ -45,7 +51,7 @@ export function NavDocuments({
           <SidebarMenuItem key={item.name} className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
             <SidebarMenuButton tooltip={item.name} asChild size="lg" className="group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:px-0">
               <Link href={item.url}>
-                <item.icon className="group-data-[collapsible=icon]:size-6" />
+                <item.icon className={`group-data-[collapsible=icon]:size-6 ${iconColors[item.name] || "text-foreground"}`} />
                 <span className="group-data-[collapsible=icon]:hidden">{item.name}</span>
               </Link>
             </SidebarMenuButton>
