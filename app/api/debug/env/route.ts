@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   const envCheck = {
     timestamp: new Date().toISOString(),
@@ -25,6 +27,6 @@ export async function GET() {
         length: process.env[key]?.length || 0
       }))
   }
-  
+
   return Response.json(envCheck)
 }
