@@ -47,6 +47,13 @@ type Product = {
   stock: number
 }
 
+type PaymentMethodType = {
+  id: string
+  name: string
+  codigo: string | null
+  parcelas: string
+}
+
 interface NewSaleDialogProps {
   storeId: string
   onSaleCreated?: () => void
@@ -62,9 +69,11 @@ export function NewSaleDialog({
   const [teamMembers, setTeamMembers] = React.useState<TeamMember[]>([])
   const [customers, setCustomers] = React.useState<Customer[]>([])
   const [products, setProducts] = React.useState<Product[]>([])
+  const [paymentMethods, setPaymentMethods] = React.useState<PaymentMethodType[]>([])
   const [loadingTeamMembers, setLoadingTeamMembers] = React.useState(false)
   const [loadingCustomers, setLoadingCustomers] = React.useState(false)
   const [loadingProducts, setLoadingProducts] = React.useState(false)
+  const [loadingPaymentMethods, setLoadingPaymentMethods] = React.useState(false)
   const [errors, setErrors] = React.useState<Record<string, string>>({})
 
   // Form state
@@ -72,6 +81,7 @@ export function NewSaleDialog({
     team_member_id: "",
     customer_id: "",
     payment_method: "",
+    parcelas: "À Vista",
     status: "Concluída",
     notes: "",
   })
@@ -143,12 +153,22 @@ export function NewSaleDialog({
         if (prodData.items) {
           setProducts(prodData.items)
         }
+
+        // Fetch payment methods
+        setLoadingPaymentMethods(true)
+        const paymentRes = await fetch(`/api/stores/${storeId}/payment-methods`)
+        if (!paymentRes.ok) throw new Error('Failed to fetch payment methods')
+        const paymentData = await paymentRes.json()
+        if (paymentData.items) {
+          setPaymentMethods(paymentData.items)
+        }
       } catch (error) {
         console.error("Failed to fetch data:", error)
       } finally {
         setLoadingTeamMembers(false)
         setLoadingCustomers(false)
         setLoadingProducts(false)
+        setLoadingPaymentMethods(false)
       }
     }
 
@@ -169,6 +189,9 @@ export function NewSaleDialog({
     }
     if (!formData.payment_method) {
       newErrors.payment_method = "Selecione um método de pagamento"
+    }
+    if (!formData.parcelas) {
+      newErrors.parcelas = "Selecione as parcelas"
     }
 
     setErrors(newErrors)
@@ -218,13 +241,19 @@ export function NewSaleDialog({
 
     try {
       setIsLoading(true)
+      // Find selected payment method to get its name
+      const selectedPaymentMethod = paymentMethods.find(
+        (m) => m.id === formData.payment_method
+      )
+
       const response = await fetch(`/api/stores/${storeId}/sales`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customer_id: formData.customer_id,
           team_member_id: formData.team_member_id,
-          payment_method: formData.payment_method,
+          payment_method: selectedPaymentMethod?.name || formData.payment_method,
+          parcelas: formData.parcelas,
           status: formData.status,
           ...(formData.notes ? { notes: formData.notes } : {}),
           items: cart.map((item) => ({
@@ -245,6 +274,7 @@ export function NewSaleDialog({
         team_member_id: "",
         customer_id: "",
         payment_method: "",
+        parcelas: "À Vista",
         status: "Concluída",
         notes: "",
       })
@@ -259,14 +289,6 @@ export function NewSaleDialog({
       setIsLoading(false)
     }
   }
-
-  const paymentMethods = [
-    "Cartão de Crédito",
-    "Cartão de Débito",
-    "PIX",
-    "Dinheiro",
-    "Boleto",
-  ]
 
   return (
     <>
@@ -554,28 +576,65 @@ export function NewSaleDialog({
           </Tabs>
 
           {/* Método de Pagamento */}
-          <div className="space-y-2">
-            <Label htmlFor="payment-method">Método de Pagamento *</Label>
-            <Select
-              value={formData.payment_method}
-              onValueChange={(value) =>
-                setFormData({ ...formData, payment_method: value })
-              }
-            >
-              <SelectTrigger id="payment-method">
-                <SelectValue placeholder="Selecione um método" />
-              </SelectTrigger>
-              <SelectContent>
-                {paymentMethods.map((method) => (
-                  <SelectItem key={method} value={method}>
-                    {method}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.payment_method && (
-              <p className="text-sm text-red-600">{errors.payment_method}</p>
-            )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="payment-method">Método de Pagamento *</Label>
+              <Select
+                value={formData.payment_method}
+                onValueChange={(value) => {
+                  const method = paymentMethods.find((m) => m.id === value)
+                  setFormData({
+                    ...formData,
+                    payment_method: value,
+                    parcelas: method?.parcelas || "À Vista",
+                  })
+                }}
+                disabled={loadingPaymentMethods}
+              >
+                <SelectTrigger id="payment-method">
+                  <SelectValue placeholder="Selecione um método" />
+                </SelectTrigger>
+                <SelectContent>
+                  {paymentMethods.map((method) => (
+                    <SelectItem key={method.id} value={method.id}>
+                      {method.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.payment_method && (
+                <p className="text-sm text-red-600">{errors.payment_method}</p>
+              )}
+            </div>
+
+            {/* Parcelas */}
+            <div className="space-y-2">
+              <Label htmlFor="parcelas">Parcelas *</Label>
+              <Select
+                value={formData.parcelas}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, parcelas: value })
+                }
+                disabled={!formData.payment_method || loadingPaymentMethods}
+              >
+                <SelectTrigger id="parcelas">
+                  <SelectValue placeholder="Selecione parcelas" />
+                </SelectTrigger>
+                <SelectContent>
+                  {formData.payment_method &&
+                    paymentMethods
+                      .find((m) => m.id === formData.payment_method)
+                      ?.parcelas && (
+                      <SelectItem value={formData.parcelas}>
+                        {formData.parcelas}
+                      </SelectItem>
+                    )}
+                </SelectContent>
+              </Select>
+              {errors.parcelas && (
+                <p className="text-sm text-red-600">{errors.parcelas}</p>
+              )}
+            </div>
           </div>
 
           {/* Status */}

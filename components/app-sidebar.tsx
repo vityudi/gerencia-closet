@@ -12,7 +12,6 @@ import {
   IconPackage,
   IconReport,
   IconSearch,
-  IconSettings,
   IconShoppingCart,
   IconUsers,
   IconUserCheck,
@@ -21,6 +20,7 @@ import {
 import { NavDocuments } from "@/components/nav-documents"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
+import { NavSettings } from "@/components/nav-settings"
 import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
@@ -105,11 +105,6 @@ const data = {
   ],
   navSecondary: [
     {
-      title: "Configurações",
-      url: "/dashboard/settings",
-      icon: IconSettings,
-    },
-    {
       title: "Ajuda",
       url: "/dashboard/help",
       icon: IconHelp,
@@ -160,7 +155,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavMain items={data.navMain} />
         <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavSettings />
+        <NavSecondary items={data.navSecondary} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
