@@ -1,8 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { IconPlus, IconX, IconSearch } from "@tabler/icons-react"
-import { useCart, type CartItem } from "@/contexts/cart-context"
+import { IconX, IconSearch } from "@tabler/icons-react"
+import { useCart } from "@/contexts/cart-context"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -11,7 +11,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -63,7 +62,7 @@ export function NewSaleDialog({
   storeId,
   onSaleCreated
 }: NewSaleDialogProps) {
-  const { cart, addToCart, removeFromCart, clearCart, total, isModalOpen, setIsModalOpen, defaultTab: contextDefaultTab, setDefaultTab } = useCart()
+  const { cart, addToCart, removeFromCart, clearCart, total, isModalOpen, setIsModalOpen, defaultTab: contextDefaultTab } = useCart()
   const [activeTab, setActiveTab] = React.useState<"add-product" | "cart">(contextDefaultTab)
   const [isLoading, setIsLoading] = React.useState(false)
   const [teamMembers, setTeamMembers] = React.useState<TeamMember[]>([])
@@ -189,9 +188,6 @@ export function NewSaleDialog({
     }
     if (!formData.payment_method) {
       newErrors.payment_method = "Selecione um método de pagamento"
-    }
-    if (!formData.parcelas) {
-      newErrors.parcelas = "Selecione as parcelas"
     }
 
     setErrors(newErrors)
@@ -576,65 +572,40 @@ export function NewSaleDialog({
           </Tabs>
 
           {/* Método de Pagamento */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="payment-method">Método de Pagamento *</Label>
-              <Select
-                value={formData.payment_method}
-                onValueChange={(value) => {
-                  const method = paymentMethods.find((m) => m.id === value)
-                  setFormData({
-                    ...formData,
-                    payment_method: value,
-                    parcelas: method?.parcelas || "À Vista",
-                  })
-                }}
-                disabled={loadingPaymentMethods}
-              >
-                <SelectTrigger id="payment-method">
-                  <SelectValue placeholder="Selecione um método" />
-                </SelectTrigger>
-                <SelectContent>
-                  {paymentMethods.map((method) => (
-                    <SelectItem key={method.id} value={method.id}>
-                      {method.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.payment_method && (
-                <p className="text-sm text-red-600">{errors.payment_method}</p>
-              )}
-            </div>
-
-            {/* Parcelas */}
-            <div className="space-y-2">
-              <Label htmlFor="parcelas">Parcelas *</Label>
-              <Select
-                value={formData.parcelas}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, parcelas: value })
-                }
-                disabled={!formData.payment_method || loadingPaymentMethods}
-              >
-                <SelectTrigger id="parcelas">
-                  <SelectValue placeholder="Selecione parcelas" />
-                </SelectTrigger>
-                <SelectContent>
-                  {formData.payment_method &&
-                    paymentMethods
-                      .find((m) => m.id === formData.payment_method)
-                      ?.parcelas && (
-                      <SelectItem value={formData.parcelas}>
-                        {formData.parcelas}
-                      </SelectItem>
-                    )}
-                </SelectContent>
-              </Select>
-              {errors.parcelas && (
-                <p className="text-sm text-red-600">{errors.parcelas}</p>
-              )}
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="payment-method">Método de Pagamento *</Label>
+            <Select
+              value={formData.payment_method}
+              onValueChange={(value) => {
+                const method = paymentMethods.find((m) => m.id === value)
+                setFormData({
+                  ...formData,
+                  payment_method: value,
+                  parcelas: method?.parcelas || "À Vista",
+                })
+              }}
+              disabled={loadingPaymentMethods}
+            >
+              <SelectTrigger id="payment-method">
+                <SelectValue placeholder="Selecione um método" />
+              </SelectTrigger>
+              <SelectContent>
+                {paymentMethods.map((method) => (
+                  <SelectItem key={method.id} value={method.id}>
+                    <div className="flex items-center gap-2">
+                      {method.codigo && (
+                        <span className="font-semibold text-blue-600">{method.codigo}</span>
+                      )}
+                      <span>{method.name}</span>
+                      <span className="text-muted-foreground">({method.parcelas})</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.payment_method && (
+              <p className="text-sm text-red-600">{errors.payment_method}</p>
+            )}
           </div>
 
           {/* Status */}

@@ -153,7 +153,7 @@ export function PaymentMethodsSettings() {
       <CardContent className="space-y-6">
         {/* Add new payment method form */}
         <form onSubmit={handleAddPaymentMethod} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
             <div className="md:col-span-1">
               <Input
                 placeholder="Nome (ex: Cartão de Crédito)"
@@ -193,20 +193,20 @@ export function PaymentMethodsSettings() {
                 </SelectContent>
               </Select>
             </div>
-          </div>
 
-          <Button
-            type="submit"
-            disabled={submitting || !newMethod.trim()}
-            className="w-full md:w-auto gap-2"
-          >
-            {submitting ? (
-              <IconLoader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <IconPlus className="h-4 w-4" />
-            )}
-            Adicionar
-          </Button>
+            <Button
+              type="submit"
+              disabled={submitting || !newMethod.trim()}
+              className="gap-2"
+            >
+              {submitting ? (
+                <IconLoader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <IconPlus className="h-4 w-4" />
+              )}
+              Adicionar
+            </Button>
+          </div>
         </form>
 
         {/* Error message */}

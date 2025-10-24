@@ -227,7 +227,7 @@ interface SalesTableProps {
   onSaleCreated?: () => void
 }
 
-export function SalesTable({ data, onSaleCreated }: SalesTableProps) {
+export function SalesTable({ data }: SalesTableProps) {
   const { setIsModalOpen, setDefaultTab } = useCart()
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
