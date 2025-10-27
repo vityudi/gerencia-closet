@@ -5,22 +5,18 @@ import Link from "next/link"
 import {
   IconChartBar,
   IconDashboard,
-  IconHelp,
   IconInnerShadowTop,
   IconListDetails,
   IconMessageCircle,
   IconPackage,
   IconReport,
-  IconSearch,
+  IconSettings,
   IconShoppingCart,
   IconUsers,
   IconUserCheck,
 } from "@tabler/icons-react"
 
-import { NavDocuments } from "@/components/nav-documents"
 import { NavMain } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
-import { NavSettings } from "@/components/nav-settings"
 import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
@@ -70,61 +66,30 @@ const data = {
       icon: IconUserCheck,
     },
   ],
-  navClouds: [
-    {
-      title: "Análises",
-      icon: IconChartBar,
-      isActive: true,
-      url: "/dashboard/analytics",
-      items: [
-        {
-          title: "Relatórios de Vendas",
-          url: "/dashboard/sales",
-        },
-        {
-          title: "Métricas de Produtos",
-          url: "/dashboard/products",
-        },
-      ],
-    },
-    {
-      title: "Gestão",
-      icon: IconListDetails,
-      url: "/dashboard/management",
-      items: [
-        {
-          title: "Estoque",
-          url: "/dashboard/products",
-        },
-        {
-          title: "Clientes",
-          url: "/dashboard/customers",
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Ajuda",
-      url: "/dashboard/help",
-      icon: IconHelp,
-    },
-    {
-      title: "Buscar",
-      url: "/dashboard/search",
-      icon: IconSearch,
-    },
-  ],
   documents: [
     {
-      name: "Relatórios",
+      title: "Relatórios",
       url: "/dashboard/reports",
       icon: IconReport,
     },
     {
-      name: "Análises",
+      title: "Análises",
       url: "/dashboard/analytics",
       icon: IconChartBar,
+    },
+  ],
+  secondary: [],
+  settings: [
+    {
+      title: "Configurações",
+      url: "/dashboard/settings",
+      icon: IconSettings,
+      items: [
+        {
+          title: "Métodos de Pagamento",
+          url: "/dashboard/settings/payment-methods",
+        },
+      ],
     },
   ],
 }
@@ -153,10 +118,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavSettings />
-        <NavSecondary items={data.navSecondary} />
+        <NavMain
+          items={data.navMain}
+          documents={data.documents}
+          secondary={data.secondary}
+          settings={data.settings}
+        />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />

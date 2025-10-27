@@ -2,19 +2,30 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { IconPlus, IconShoppingCart, type Icon } from "@tabler/icons-react"
+import { IconPlus, IconShoppingCart, IconChevronDown, type Icon } from "@tabler/icons-react"
 import { useSelectedStoreId } from "@/hooks/use-store"
 import { useCart } from "@/contexts/cart-context"
+import { usePathname } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { NewSaleDialog } from "@/components/new-sale-dialog"
 import {
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 
 // Color mapping for navigation items
 const iconColors: Record<string, string> = {
@@ -24,21 +35,62 @@ const iconColors: Record<string, string> = {
   "Clientes": "text-pink-500",
   "Vendas": "text-green-500",
   "Equipe": "text-cyan-500",
+  "Configurações": "text-slate-500",
+  "Ajuda": "text-yellow-500",
+  "Buscar": "text-red-500",
+  "Relatórios": "text-indigo-500",
+  "Análises": "text-emerald-500",
+}
+
+interface NavItem {
+  title: string
+  url: string
+  icon?: Icon
+}
+
+interface NavGroup {
+  title: string
+  url: string
+  icon: Icon
+  items: NavItem[]
 }
 
 export function NavMain({
-  items,
+  items = [],
+  documents = [],
+  secondary = [],
+  settings = [],
 }: {
-  items: {
-    title: string
-    url: string
-    icon?: Icon
-  }[]
-}) {
+  items?: NavItem[]
+  documents?: NavItem[]
+  secondary?: NavItem[]
+  settings?: NavGroup[]
+} = {}) {
   const storeId = useSelectedStoreId()
+  const pathname = usePathname()
+  const { isMobile } = useSidebar()
   const { setIsModalOpen, setDefaultTab, cart } = useCart()
+  const [openItems, setOpenItems] = React.useState<Record<string, boolean>>({})
+
+  // Auto-expand settings group if any subpage is active
+  React.useEffect(() => {
+    const isSettingsPage = pathname.startsWith("/dashboard/settings")
+    if (isSettingsPage) {
+      setOpenItems((prev) => ({
+        ...prev,
+        Configurações: true,
+      }))
+    }
+  }, [pathname])
 
   if (!storeId) return null
+
+  const toggleGroup = (groupTitle: string) => {
+    setOpenItems((prev) => ({
+      ...prev,
+      [groupTitle]: !prev[groupTitle],
+    }))
+  }
 
   return (
     <SidebarGroup>
@@ -98,6 +150,90 @@ export function NavMain({
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
+
+        {/* Documents Section */}
+        {documents.length > 0 && (
+          <SidebarMenu>
+            {documents.map((item) => (
+              <SidebarMenuItem key={item.url} className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+                <SidebarMenuButton tooltip={item.title} asChild size="lg" className="group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:px-0">
+                  <Link href={item.url}>
+                    {item.icon && <item.icon className={`group-data-[collapsible=icon]:size-6 ${iconColors[item.title] || "text-foreground"}`} />}
+                    <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        )}
+
+        {/* Secondary Navigation */}
+        {secondary.length > 0 && (
+          <SidebarMenu>
+            {secondary.map((item) => (
+              <SidebarMenuItem key={item.title} className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+                <SidebarMenuButton tooltip={item.title} asChild size="lg" className="group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:px-0">
+                  <Link href={item.url}>
+                    {item.icon && <item.icon className={`group-data-[collapsible=icon]:size-6 ${iconColors[item.title] || "text-foreground"}`} />}
+                    <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        )}
+
+        {/* Settings Section with Collapsible Groups */}
+        {settings.length > 0 && (
+          <SidebarMenu>
+            {settings.map((group) => {
+              const isOpen = openItems[group.title] ?? false
+              const GroupIcon = group.icon
+
+              return (
+                <Collapsible
+                  key={group.title}
+                  open={isOpen}
+                  onOpenChange={() => toggleGroup(group.title)}
+                  className="group/collapsible w-full"
+                >
+                  <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton
+                        tooltip={group.title}
+                        className="group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:px-0 w-full [&[data-state=open]_svg:last-child]:rotate-180"
+                        size="lg"
+                      >
+                        <div className="flex items-center gap-2 flex-1">
+                          <GroupIcon className="text-slate-500 group-data-[collapsible=icon]:size-6" />
+                          <span className="group-data-[collapsible=icon]:hidden">
+                            {group.title}
+                          </span>
+                        </div>
+                        <IconChevronDown className="transition-transform duration-200 h-4 w-4 group-data-[collapsible=icon]:hidden ml-auto" />
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+
+                    <CollapsibleContent className="CollapsibleContent group-data-[collapsible=icon]:hidden w-full">
+                      <SidebarMenuSub>
+                        {group.items.map((item) => (
+                          <SidebarMenuSubItem key={item.url}>
+                            <SidebarMenuSubButton
+                              asChild
+                              isActive={pathname === item.url}
+                            >
+                              <Link href={item.url}>{item.title}</Link>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </SidebarMenuItem>
+                </Collapsible>
+              )
+            })}
+          </SidebarMenu>
+        )}
       </SidebarGroupContent>
     </SidebarGroup>
   )
