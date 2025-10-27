@@ -234,7 +234,7 @@ export function PaymentMethodsSettings() {
 
         {/* Payment methods list */}
         {!loading && paymentMethods.length === 0 && (
-          <div className="rounded-md border border-dashed border-gray-300 p-6 text-center">
+          <div className="rounded-md border border-dashed p-6 text-center">
             <p className="text-sm text-muted-foreground">
               Sem Métodos de Pagamento configurados. Insira um novo para começar.
             </p>
@@ -246,7 +246,7 @@ export function PaymentMethodsSettings() {
             {paymentMethods.map((method) => (
               <div
                 key={method.id}
-                className="flex items-center justify-between rounded-md border border-gray-200 p-4"
+                className="flex items-center justify-between rounded-md border p-4"
               >
                 <div className="flex flex-col gap-2 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
