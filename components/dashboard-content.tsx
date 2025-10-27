@@ -71,7 +71,7 @@ export function DashboardContent() {
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       {/* Layout principal: Cards 2x2 + Gráfico lado a lado */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
         {/* Cards de métricas em grid 2x2 - metade da largura */}
         <SectionCards />
 

@@ -75,7 +75,7 @@ export function SalesChart({ data }: SalesChartProps) {
   }, [data])
 
   return (
-    <Card className="@container/card">
+    <Card className="@container/card flex flex-col h-full">
       <CardHeader>
         <CardTitle>Vendas do Mês</CardTitle>
         <CardDescription>
@@ -85,11 +85,11 @@ export function SalesChart({ data }: SalesChartProps) {
           <span className="@[540px]/card:hidden">Vendas por dia</span>
         </CardDescription>
       </CardHeader>
-      <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+      <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6 flex-1 flex flex-col">
         {groupedData.length > 0 ? (
           <ChartContainer
             config={chartConfig}
-            className="aspect-auto h-[250px] w-full"
+            className="aspect-auto flex-1 w-full"
           >
             <AreaChart data={groupedData}>
               <defs>
