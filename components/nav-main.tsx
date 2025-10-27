@@ -42,6 +42,22 @@ const iconColors: Record<string, string> = {
   "Análises": "text-emerald-500",
 }
 
+// Reusable NavButton component
+function NavButton({ title, url, icon: Icon }: { title: string; url: string; icon?: Icon }) {
+  return (
+    <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+      <SidebarMenuButton tooltip={title} asChild size="lg" className="group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:px-0 w-full">
+        <Link href={url}>
+          <div className="flex items-center gap-2 flex-1">
+            {Icon && <Icon className={`group-data-[collapsible=icon]:size-6 ${iconColors[title] || "text-foreground"}`} />}
+            <span className="group-data-[collapsible=icon]:hidden">{title}</span>
+          </div>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  )
+}
+
 interface NavItem {
   title: string
   url: string
@@ -140,14 +156,7 @@ export function NavMain({
         <NewSaleDialog storeId={storeId} />
         <SidebarMenu>
           {items.map((item) => (
-            <SidebarMenuItem key={item.title} className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
-              <SidebarMenuButton tooltip={item.title} asChild size="lg" className="group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:px-0">
-                <Link href={item.url}>
-                  {item.icon && <item.icon className={`group-data-[collapsible=icon]:size-6 ${iconColors[item.title] || "text-foreground"}`} />}
-                  <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            <NavButton key={item.title} {...item} />
           ))}
         </SidebarMenu>
 
@@ -155,14 +164,7 @@ export function NavMain({
         {documents.length > 0 && (
           <SidebarMenu>
             {documents.map((item) => (
-              <SidebarMenuItem key={item.url} className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
-                <SidebarMenuButton tooltip={item.title} asChild size="lg" className="group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:px-0">
-                  <Link href={item.url}>
-                    {item.icon && <item.icon className={`group-data-[collapsible=icon]:size-6 ${iconColors[item.title] || "text-foreground"}`} />}
-                    <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              <NavButton key={item.url} {...item} />
             ))}
           </SidebarMenu>
         )}
@@ -171,14 +173,7 @@ export function NavMain({
         {secondary.length > 0 && (
           <SidebarMenu>
             {secondary.map((item) => (
-              <SidebarMenuItem key={item.title} className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
-                <SidebarMenuButton tooltip={item.title} asChild size="lg" className="group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:px-0">
-                  <Link href={item.url}>
-                    {item.icon && <item.icon className={`group-data-[collapsible=icon]:size-6 ${iconColors[item.title] || "text-foreground"}`} />}
-                    <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              <NavButton key={item.title} {...item} />
             ))}
           </SidebarMenu>
         )}
