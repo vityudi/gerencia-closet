@@ -8,16 +8,23 @@ export async function GET(
   try {
     const { id } = await params
     const supabase = createSupabaseServiceClient()
-    const { data, error } = await supabase
-      .from('products')
-      .select('*, product_variations(*, product_attributes(id, name, label))')
-      .eq('store_id', id)
-      .order('created_at', { ascending: false })
 
-    if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 })
-    return Response.json({ items: data ?? [] })
+    const { data, error } = await supabase
+      .from('product_attributes')
+      .select('*, product_attribute_options(*)')
+      .eq('store_id', id)
+      .order('position')
+
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ attributes: data ?? [] })
   } catch (error) {
-    console.error('Error fetching products:', error)
+    console.error('Error fetching product attributes:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -32,81 +39,52 @@ export async function POST(
   try {
     const { id } = await params
     const body = await req.json()
-    const {
-      codigo,
-      name,
-      marca,
-      categoria,
-      subcategoria,
-      grupo,
-      subgrupo,
-      departamento,
-      secao,
-      estacao,
-      colecao,
-      descricao,
-      observacao,
-      fabricante,
-      fornecedor,
-      ncm,
-      cest,
-      custo,
-      preco1,
-      preco2,
-      preco3,
-      stock = 0,
-    } = body
-
-    if (!codigo || !name) {
-      return NextResponse.json(
-        { error: 'Código e Nome são obrigatórios' },
-        { status: 400 }
-      )
-    }
+    const { name, label, is_variation, is_required, options } = body
 
     const supabase = createSupabaseServiceClient()
-    const { data, error } = await supabase
-      .from('products')
+
+    // Create the attribute
+    const { data: attribute, error: attrError } = await supabase
+      .from('product_attributes')
       .insert([
         {
           store_id: id,
-          codigo,
           name,
-          marca,
-          categoria,
-          subcategoria,
-          grupo,
-          subgrupo,
-          departamento,
-          secao,
-          estacao,
-          colecao,
-          descricao,
-          observacao,
-          fabricante,
-          fornecedor,
-          ncm,
-          cest,
-          custo,
-          preco1: preco1 || 0,
-          preco2,
-          preco3,
-          stock,
+          label,
+          is_variation: is_variation || false,
+          is_required: is_required || false,
         },
       ])
       .select()
       .single()
 
-    if (error) {
+    if (attrError) {
       return NextResponse.json(
-        { error: error.message },
+        { error: attrError.message },
         { status: 500 }
       )
     }
 
-    return NextResponse.json(data, { status: 201 })
+    // Create options if provided
+    if (options && options.length > 0) {
+      const optionsData = options.map((opt: string, index: number) => ({
+        attribute_id: attribute.id,
+        value: opt,
+        position: index,
+      }))
+
+      const { error: optError } = await supabase
+        .from('product_attribute_options')
+        .insert(optionsData)
+
+      if (optError) {
+        console.error('Error creating attribute options:', optError)
+      }
+    }
+
+    return NextResponse.json(attribute, { status: 201 })
   } catch (error) {
-    console.error('Error creating product:', error)
+    console.error('Error creating product attribute:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -121,25 +99,22 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await req.json()
-    const { productId, ...updateData } = body
-
-    if (!productId) {
-      return NextResponse.json(
-        { error: 'Product ID is required' },
-        { status: 400 }
-      )
-    }
+    const { attributeId, name, label, is_variation, is_required } = body
 
     const supabase = createSupabaseServiceClient()
+
     const { data, error } = await supabase
-      .from('products')
+      .from('product_attributes')
       .update({
-        ...updateData,
+        name,
+        label,
+        is_variation,
+        is_required,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', productId)
+      .eq('id', attributeId)
       .eq('store_id', id)
-      .select('*, product_variations(*, product_attributes(id, name, label))')
+      .select()
       .single()
 
     if (error) {
@@ -151,7 +126,7 @@ export async function PUT(
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error updating product:', error)
+    console.error('Error updating product attribute:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -166,20 +141,21 @@ export async function DELETE(
   try {
     const { id } = await params
     const { searchParams } = new URL(req.url)
-    const productId = searchParams.get('productId')
+    const attributeId = searchParams.get('attributeId')
 
-    if (!productId) {
+    if (!attributeId) {
       return NextResponse.json(
-        { error: 'Product ID is required' },
+        { error: 'Attribute ID is required' },
         { status: 400 }
       )
     }
 
     const supabase = createSupabaseServiceClient()
+
     const { error } = await supabase
-      .from('products')
+      .from('product_attributes')
       .delete()
-      .eq('id', productId)
+      .eq('id', attributeId)
       .eq('store_id', id)
 
     if (error) {
@@ -191,12 +167,10 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error deleting product:', error)
+    console.error('Error deleting product attribute:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     )
   }
 }
-
-

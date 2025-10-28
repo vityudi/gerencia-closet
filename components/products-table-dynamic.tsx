@@ -73,79 +73,64 @@ export type Product = {
   }>
 }
 
-function getColumns(onEdit?: (product: Product) => void): ColumnDef<Product>[] {
-  return [
-    {
-      accessorKey: "codigo",
-      header: "Código",
-      cell: ({ row }) => (
-        <div className="font-mono text-sm font-medium">{row.getValue("codigo")}</div>
-      ),
-      filterFn: (row, id, value) => {
-        const codigo = row.getValue(id) as string
-        const name = row.getValue("name") as string
-        const marca = row.getValue("marca") as string
-        return (
-          codigo?.toLowerCase().includes(value.toLowerCase()) ||
-          name?.toLowerCase().includes(value.toLowerCase()) ||
-          marca?.toLowerCase().includes(value.toLowerCase())
-        )
-      },
-    },
-    {
-      accessorKey: "name",
-      header: "Nome",
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("name")}</div>
-      ),
-    },
-    {
-      accessorKey: "marca",
-      header: "Marca",
-      cell: ({ row }) => {
-        const value = row.getValue("marca") as string
-        return <div className="text-sm">{value || "-"}</div>
-      },
-    },
-    {
-      accessorKey: "categoria",
-      header: "Categoria",
-      cell: ({ row }) => {
-        const value = row.getValue("categoria") as string
-        return <div className="text-sm">{value || "-"}</div>
-      },
-    },
-    {
-      accessorKey: "preco1",
-      header: () => (
-        <div className="text-right">Preço 1</div>
-      ),
-      cell: ({ row }) => {
-        const price = parseFloat(String(row.getValue("preco1"))) || 0
-        const formatted = new Intl.NumberFormat("pt-BR", {
-          style: "currency",
-          currency: "BRL",
-        }).format(price)
-        return <div className="text-right font-medium text-sm">{formatted}</div>
-      },
-    },
-    {
-      accessorKey: "stock",
-      header: "Estoque",
-      cell: ({ row }) => {
-        const stock = row.getValue("stock") as number
-        const variant = stock > 20 ? "default" : stock > 10 ? "secondary" : "destructive"
+interface ProductColumn {
+  id: string
+  field_name: string
+  label: string
+  is_visible: boolean
+  is_editable: boolean
+  position: number
+  column_type: string
+  width: string
+}
+
+function formatValue(value: unknown, columnType: string): string {
+  if (value === null || value === undefined) return '-'
+
+  switch (columnType) {
+    case 'currency':
+      const formatted = new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+      }).format(parseFloat(String(value)) || 0)
+      return formatted
+    case 'number':
+      return new Intl.NumberFormat('pt-BR').format(parseFloat(String(value)) || 0)
+    case 'date':
+      return new Date(String(value)).toLocaleDateString('pt-BR')
+    default:
+      return String(value)
+  }
+}
+
+function getDynamicColumns(
+  columnConfig: ProductColumn[],
+  onEdit?: (product: Product) => void
+): ColumnDef<Product>[] {
+  const visibleColumns = columnConfig
+    .filter((col) => col.is_visible)
+    .sort((a, b) => a.position - b.position)
+
+  const columns: ColumnDef<Product>[] = visibleColumns.map((col) => ({
+    accessorKey: col.field_name,
+    header: col.label,
+    cell: ({ row }) => {
+      const value = row.getValue(col.field_name)
+      const displayValue = formatValue(value, col.column_type)
+
+      // Special handling for stock - show badge
+      if (col.field_name === 'stock') {
+        const stock = value as number
+        const variant = stock > 20 ? 'default' : stock > 10 ? 'secondary' : 'destructive'
         return (
           <div className="flex items-center gap-2">
-            <Badge variant={variant}>{stock}</Badge>
+            <Badge variant={variant}>{displayValue}</Badge>
           </div>
         )
-      },
-    },
-    {
-      id: "variações",
-      header: "Variações",
-      cell: ({ row }) => {
+      }
+
+      // Special handling for variations
+      if (col.field_name === 'product_variations') {
         const variations = (row.original.product_variations || []) as Array<{
           id: string
           attribute_id: string
@@ -167,48 +152,80 @@ function getColumns(onEdit?: (product: Product) => void): ColumnDef<Product>[] {
           <div className="flex flex-wrap gap-1">
             {Object.entries(groupedByAttribute).map(([attr, values]) => (
               <Badge key={attr} variant="outline" className="text-xs">
-                {attr}: {values.join(", ")}
+                {attr}: {values.join(', ')}
               </Badge>
             ))}
           </div>
         )
-      },
+      }
+
+      // Default text rendering
+      return (
+        <div
+          className={`text-sm ${
+            col.column_type === 'currency' ? 'text-right font-medium' : ''
+          }`}
+        >
+          {col.column_type === 'textarea' && displayValue.length > 50
+            ? `${displayValue.substring(0, 50)}...`
+            : displayValue}
+        </div>
+      )
     },
-    {
-      id: "actions",
-      cell: ({ row }) => {
-        const product = row.original
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Abrir menu</span>
-                <IconDotsVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit?.(product)}>
-                <IconEdit className="mr-2 h-4 w-4" />
-                Editar
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600">
-                <IconTrash className="mr-2 h-4 w-4" />
-                Excluir
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )
-      },
+    filterFn: (row, id, value) => {
+      const cellValue = row.getValue(id) as string
+      return cellValue?.toString().toLowerCase().includes(value.toLowerCase())
     },
-  ]
+  }))
+
+  // Add actions column
+  columns.push({
+    id: 'actions',
+    cell: ({ row }) => {
+      const product = row.original
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Abrir menu</span>
+              <IconDotsVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onEdit?.(product)}>
+              <IconEdit className="mr-2 h-4 w-4" />
+              Editar
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="text-red-600">
+              <IconTrash className="mr-2 h-4 w-4" />
+              Excluir
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )
+    },
+  })
+
+  return columns
 }
 
-export function ProductsTable({ data, onEdit }: { data: Product[], onEdit?: (product: Product) => void }) {
+export function ProductsTableDynamic({
+  data,
+  onEdit,
+  columnConfig,
+}: {
+  data: Product[]
+  onEdit?: (product: Product) => void
+  columnConfig: ProductColumn[]
+}) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
-  const columns = React.useMemo(() => getColumns(onEdit), [onEdit])
+  const columns = React.useMemo(
+    () => getDynamicColumns(columnConfig as ProductColumn[], onEdit),
+    [columnConfig, onEdit]
+  )
 
   const table = useReactTable({
     data,
@@ -225,22 +242,41 @@ export function ProductsTable({ data, onEdit }: { data: Product[], onEdit?: (pro
     },
   })
 
+  // Find first searchable column (codigo, name, or first available column)
+  const searchColumn = React.useMemo(() => {
+    // Try to find codigo or name columns
+    const preferredColumn = columns.find((col) =>
+      ['codigo', 'name'].includes(col.id ?? '')
+    )?.id
+
+    if (preferredColumn) {
+      return preferredColumn
+    }
+
+    // Fallback to first column that's not actions
+    const firstColumn = columns.find((col) => col.id !== 'actions')?.id
+
+    return firstColumn || 'codigo'
+  }, [columns])
+
   return (
     <div className="w-full space-y-4">
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <IconSearch className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por código, nome ou marca..."
-            value={(table.getColumn("codigo")?.getFilterValue() as string) ?? ""}
+            placeholder="Buscar produtos..."
+            value={
+              (table.getColumn(searchColumn)?.getFilterValue() as string) ?? ''
+            }
             onChange={(event) =>
-              table.getColumn("codigo")?.setFilterValue(event.target.value)
+              table.getColumn(searchColumn)?.setFilterValue(event.target.value)
             }
             className="pl-8"
           />
         </div>
       </div>
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -265,7 +301,7 @@ export function ProductsTable({ data, onEdit }: { data: Product[], onEdit?: (pro
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
+                  data-state={row.getIsSelected() && 'selected'}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

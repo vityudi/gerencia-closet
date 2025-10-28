@@ -25,6 +25,66 @@ DELETE FROM customers;
 -- CRIAÇÃO DAS ESTRUTURAS
 -- ========================================
 
+-- Criar tabela product_attributes (configuração de atributos de produto por loja)
+CREATE TABLE IF NOT EXISTS product_attributes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  label TEXT NOT NULL,
+  is_variation BOOLEAN DEFAULT false,
+  is_required BOOLEAN DEFAULT false,
+  position INTEGER DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(store_id, name)
+);
+
+-- Criar tabela product_attribute_options (opções predefinidas para atributos)
+CREATE TABLE IF NOT EXISTS product_attribute_options (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  attribute_id UUID NOT NULL REFERENCES product_attributes(id) ON DELETE CASCADE,
+  value TEXT NOT NULL,
+  position INTEGER DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Criar tabela product_variations (variações de produtos como Tamanho, Cor, etc)
+CREATE TABLE IF NOT EXISTS product_variations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  attribute_id UUID NOT NULL REFERENCES product_attributes(id) ON DELETE CASCADE,
+  value TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(product_id, attribute_id, value)
+);
+
+-- Criar tabela product_columns (configuração de colunas da tabela de produtos)
+CREATE TABLE IF NOT EXISTS product_columns (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+  field_name TEXT NOT NULL,
+  label TEXT NOT NULL,
+  is_visible BOOLEAN DEFAULT true,
+  is_editable BOOLEAN DEFAULT true,
+  position INTEGER DEFAULT 0,
+  column_type TEXT DEFAULT 'text', -- text, number, currency, date, select, textarea
+  width TEXT DEFAULT 'auto', -- auto, sm, md, lg, xl
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(store_id, field_name)
+);
+
+-- Criar tabela product_column_options (opções predefinidas para colunas select)
+CREATE TABLE IF NOT EXISTS product_column_options (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  column_id UUID NOT NULL REFERENCES product_columns(id) ON DELETE CASCADE,
+  value TEXT NOT NULL,
+  position INTEGER DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Criar tabela team_members se não existir
 CREATE TABLE IF NOT EXISTS team_members (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -40,11 +100,100 @@ CREATE TABLE IF NOT EXISTS team_members (
 );
 
 -- Adicionar coluna team_member_id na tabela sales se não existir
-DO $$ 
+DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
                    WHERE table_name = 'sales' AND column_name = 'team_member_id') THEN
         ALTER TABLE sales ADD COLUMN team_member_id UUID REFERENCES team_members(id);
+    END IF;
+END $$;
+
+-- Adicionar colunas de produto se não existirem (refatoração de produtos)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'products' AND column_name = 'codigo') THEN
+        ALTER TABLE products ADD COLUMN codigo TEXT UNIQUE;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'products' AND column_name = 'marca') THEN
+        ALTER TABLE products ADD COLUMN marca TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'products' AND column_name = 'categoria') THEN
+        ALTER TABLE products ADD COLUMN categoria TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'products' AND column_name = 'subcategoria') THEN
+        ALTER TABLE products ADD COLUMN subcategoria TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'products' AND column_name = 'grupo') THEN
+        ALTER TABLE products ADD COLUMN grupo TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'products' AND column_name = 'subgrupo') THEN
+        ALTER TABLE products ADD COLUMN subgrupo TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'products' AND column_name = 'departamento') THEN
+        ALTER TABLE products ADD COLUMN departamento TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'products' AND column_name = 'secao') THEN
+        ALTER TABLE products ADD COLUMN secao TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'products' AND column_name = 'estacao') THEN
+        ALTER TABLE products ADD COLUMN estacao TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'products' AND column_name = 'colecao') THEN
+        ALTER TABLE products ADD COLUMN colecao TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'products' AND column_name = 'descricao') THEN
+        ALTER TABLE products ADD COLUMN descricao TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'products' AND column_name = 'observacao') THEN
+        ALTER TABLE products ADD COLUMN observacao TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'products' AND column_name = 'fabricante') THEN
+        ALTER TABLE products ADD COLUMN fabricante TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'products' AND column_name = 'fornecedor') THEN
+        ALTER TABLE products ADD COLUMN fornecedor TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'products' AND column_name = 'ncm') THEN
+        ALTER TABLE products ADD COLUMN ncm TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'products' AND column_name = 'cest') THEN
+        ALTER TABLE products ADD COLUMN cest TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'products' AND column_name = 'custo') THEN
+        ALTER TABLE products ADD COLUMN custo NUMERIC(10,2);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'products' AND column_name = 'preco1') THEN
+        ALTER TABLE products ADD COLUMN preco1 NUMERIC(10,2);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'products' AND column_name = 'preco2') THEN
+        ALTER TABLE products ADD COLUMN preco2 NUMERIC(10,2);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'products' AND column_name = 'preco3') THEN
+        ALTER TABLE products ADD COLUMN preco3 NUMERIC(10,2);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                   WHERE table_name = 'products' AND column_name = 'stock') THEN
+        ALTER TABLE products ADD COLUMN stock INTEGER DEFAULT 0;
     END IF;
 END $$;
 

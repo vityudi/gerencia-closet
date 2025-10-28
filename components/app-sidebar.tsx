@@ -6,7 +6,6 @@ import {
   IconChartBar,
   IconDashboard,
   IconInnerShadowTop,
-  IconListDetails,
   IconMessageCircle,
   IconPackage,
   IconReport,
@@ -85,6 +84,10 @@ const data = {
       url: "/dashboard/settings",
       icon: IconSettings,
       items: [
+        {
+          title: "Produtos",
+          url: "/dashboard/settings/products",
+        },
         {
           title: "Métodos de Pagamento",
           url: "/dashboard/settings/payment-methods",

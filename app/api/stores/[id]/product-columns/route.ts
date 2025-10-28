@@ -8,16 +8,23 @@ export async function GET(
   try {
     const { id } = await params
     const supabase = createSupabaseServiceClient()
-    const { data, error } = await supabase
-      .from('products')
-      .select('*, product_variations(*, product_attributes(id, name, label))')
-      .eq('store_id', id)
-      .order('created_at', { ascending: false })
 
-    if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 })
-    return Response.json({ items: data ?? [] })
+    const { data, error } = await supabase
+      .from('product_columns')
+      .select('*')
+      .eq('store_id', id)
+      .order('position')
+
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ columns: data ?? [] })
   } catch (error) {
-    console.error('Error fetching products:', error)
+    console.error('Error fetching product columns:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -32,66 +39,29 @@ export async function POST(
   try {
     const { id } = await params
     const body = await req.json()
-    const {
-      codigo,
-      name,
-      marca,
-      categoria,
-      subcategoria,
-      grupo,
-      subgrupo,
-      departamento,
-      secao,
-      estacao,
-      colecao,
-      descricao,
-      observacao,
-      fabricante,
-      fornecedor,
-      ncm,
-      cest,
-      custo,
-      preco1,
-      preco2,
-      preco3,
-      stock = 0,
-    } = body
+    const { field_name, label, is_visible, is_editable, column_type, width, position } = body
 
-    if (!codigo || !name) {
+    if (!field_name || !label) {
       return NextResponse.json(
-        { error: 'Código e Nome são obrigatórios' },
+        { error: 'field_name and label are required' },
         { status: 400 }
       )
     }
 
     const supabase = createSupabaseServiceClient()
+
     const { data, error } = await supabase
-      .from('products')
+      .from('product_columns')
       .insert([
         {
           store_id: id,
-          codigo,
-          name,
-          marca,
-          categoria,
-          subcategoria,
-          grupo,
-          subgrupo,
-          departamento,
-          secao,
-          estacao,
-          colecao,
-          descricao,
-          observacao,
-          fabricante,
-          fornecedor,
-          ncm,
-          cest,
-          custo,
-          preco1: preco1 || 0,
-          preco2,
-          preco3,
-          stock,
+          field_name,
+          label,
+          is_visible: is_visible ?? true,
+          is_editable: is_editable ?? true,
+          column_type: column_type || 'text',
+          width: width || 'auto',
+          position: position ?? 0,
         },
       ])
       .select()
@@ -106,7 +76,7 @@ export async function POST(
 
     return NextResponse.json(data, { status: 201 })
   } catch (error) {
-    console.error('Error creating product:', error)
+    console.error('Error creating product column:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -121,25 +91,31 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await req.json()
-    const { productId, ...updateData } = body
+    const { columnId, label, is_visible, is_editable, column_type, width, position } = body
 
-    if (!productId) {
+    if (!columnId) {
       return NextResponse.json(
-        { error: 'Product ID is required' },
+        { error: 'columnId is required' },
         { status: 400 }
       )
     }
 
     const supabase = createSupabaseServiceClient()
+
     const { data, error } = await supabase
-      .from('products')
+      .from('product_columns')
       .update({
-        ...updateData,
+        label,
+        is_visible,
+        is_editable,
+        column_type,
+        width,
+        position,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', productId)
+      .eq('id', columnId)
       .eq('store_id', id)
-      .select('*, product_variations(*, product_attributes(id, name, label))')
+      .select()
       .single()
 
     if (error) {
@@ -151,7 +127,7 @@ export async function PUT(
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Error updating product:', error)
+    console.error('Error updating product column:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -166,20 +142,21 @@ export async function DELETE(
   try {
     const { id } = await params
     const { searchParams } = new URL(req.url)
-    const productId = searchParams.get('productId')
+    const columnId = searchParams.get('columnId')
 
-    if (!productId) {
+    if (!columnId) {
       return NextResponse.json(
-        { error: 'Product ID is required' },
+        { error: 'columnId is required' },
         { status: 400 }
       )
     }
 
     const supabase = createSupabaseServiceClient()
+
     const { error } = await supabase
-      .from('products')
+      .from('product_columns')
       .delete()
-      .eq('id', productId)
+      .eq('id', columnId)
       .eq('store_id', id)
 
     if (error) {
@@ -191,12 +168,10 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error deleting product:', error)
+    console.error('Error deleting product column:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     )
   }
 }
-
-

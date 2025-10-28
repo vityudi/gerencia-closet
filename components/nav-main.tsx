@@ -12,7 +12,6 @@ import { NewSaleDialog } from "@/components/new-sale-dialog"
 import {
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -84,7 +83,7 @@ export function NavMain({
 } = {}) {
   const storeId = useSelectedStoreId()
   const pathname = usePathname()
-  const { isMobile } = useSidebar()
+  useSidebar()
   const { setIsModalOpen, setDefaultTab, cart } = useCart()
   const [openItems, setOpenItems] = React.useState<Record<string, boolean>>({})
 
