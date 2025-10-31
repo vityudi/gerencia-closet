@@ -47,6 +47,7 @@ interface ProductColumn {
   position: number
   column_type: string
   width: string
+  product_column_options?: Array<{ id: string; value: string; position: number }>
 }
 
 interface ColumnOption {
@@ -78,22 +79,15 @@ export function ProductColumnsSettings() {
   const fetchAllColumnOptions = useCallback(async (cols: ProductColumn[]) => {
     const optionsMap = new Map<string, ColumnOption[]>()
 
+    // Extract column options that are already included in the columns data
     for (const col of cols) {
-      if (COLUMNS_WITH_OPTIONS.includes(col.field_name)) {
-        try {
-          const response = await fetch(
-            `/api/stores/${selectedStore?.id}/product-column-options?columnId=${col.id}`
-          )
-          const data = await response.json()
-          optionsMap.set(col.id, data.options || [])
-        } catch (error) {
-          console.error(`Error fetching options for ${col.field_name}:`, error)
-        }
+      if (COLUMNS_WITH_OPTIONS.includes(col.field_name) && col.product_column_options) {
+        optionsMap.set(col.id, col.product_column_options)
       }
     }
 
     setColumnOptions(optionsMap)
-  }, [selectedStore])
+  }, [])
 
   const initializeDefaultColumns = useCallback(async () => {
     if (!selectedStore) return

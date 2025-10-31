@@ -9,9 +9,10 @@ export async function GET(
     const { id } = await params
     const supabase = createSupabaseServiceClient()
 
-    const { data, error } = await supabase
+    // Fetch attributes without nested relationships
+    const { data: attributes, error } = await supabase
       .from('product_attributes')
-      .select('*, product_attribute_options(*)')
+      .select('*')
       .eq('store_id', id)
       .order('position')
 
@@ -22,7 +23,26 @@ export async function GET(
       )
     }
 
-    return NextResponse.json({ attributes: data ?? [] })
+    // Fetch attribute options separately
+    const attributeIds = attributes?.map((a) => a.id) || []
+    let options: any[] = []
+
+    if (attributeIds.length > 0) {
+      const { data: opts } = await supabase
+        .from('product_attribute_options')
+        .select('*')
+        .in('attribute_id', attributeIds)
+
+      options = opts || []
+    }
+
+    // Enhance attributes with their options
+    const enrichedAttributes = attributes?.map((attr) => ({
+      ...attr,
+      product_attribute_options: options.filter((opt) => opt.attribute_id === attr.id),
+    })) || []
+
+    return NextResponse.json({ attributes: enrichedAttributes })
   } catch (error) {
     console.error('Error fetching product attributes:', error)
     return NextResponse.json(

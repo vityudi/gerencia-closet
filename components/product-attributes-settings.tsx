@@ -45,7 +45,8 @@ export function ProductAttributesSettings() {
   async function fetchAttributes() {
     try {
       setLoading(true)
-      const response = await fetch(`/api/stores/${selectedStore?.id}/product-attributes`)
+      // Use the optimized product-data endpoint which already includes attributes with options
+      const response = await fetch(`/api/stores/${selectedStore?.id}/product-data`)
       const data = await response.json()
       setAttributes(data.attributes || [])
     } catch (error) {

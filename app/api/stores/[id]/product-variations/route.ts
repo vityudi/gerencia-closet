@@ -12,10 +12,23 @@ export async function GET(
 
     const supabase = createSupabaseServiceClient()
 
+    // First, get all product IDs for this store
+    const { data: products } = await supabase
+      .from('products')
+      .select('id')
+      .eq('store_id', id)
+
+    const productIds = products?.map((p) => p.id) || []
+
+    if (productIds.length === 0) {
+      return NextResponse.json({ variations: [] })
+    }
+
+    // Then get variations for those products
     let query = supabase
       .from('product_variations')
-      .select('*, product_attributes(id, name, label)')
-      .eq('products.store_id', id)
+      .select('*')
+      .in('product_id', productIds)
 
     if (productId) {
       query = query.eq('product_id', productId)
@@ -47,11 +60,11 @@ export async function POST(
   try {
     await params
     const body = await req.json()
-    const { productId, attributeId, value } = body
+    const { productId, attributeOptionId } = body
 
-    if (!productId || !attributeId || !value) {
+    if (!productId || !attributeOptionId) {
       return NextResponse.json(
-        { error: 'Missing required fields: productId, attributeId, value' },
+        { error: 'Missing required fields: productId, attributeOptionId' },
         { status: 400 }
       )
     }
@@ -63,11 +76,10 @@ export async function POST(
       .insert([
         {
           product_id: productId,
-          attribute_id: attributeId,
-          value,
+          attribute_option_id: attributeOptionId,
         },
       ])
-      .select('*, product_attributes(id, name, label)')
+      .select('*')
       .single()
 
     if (error) {
@@ -108,11 +120,26 @@ export async function DELETE(
     // Get the variation to verify it belongs to this store
     const { data: variation } = await supabase
       .from('product_variations')
-      .select('product_id, products(store_id)')
+      .select('product_id')
       .eq('id', variationId)
       .single()
 
-    if (!variation || !Array.isArray(variation.products) || variation.products.length === 0 || (variation.products[0] as Record<string, unknown>).store_id !== id) {
+    if (!variation || !variation.product_id) {
+      return NextResponse.json(
+        { error: 'Variation not found' },
+        { status: 404 }
+      )
+    }
+
+    // Verify the product belongs to this store
+    const { data: product } = await supabase
+      .from('products')
+      .select('id')
+      .eq('id', variation.product_id)
+      .eq('store_id', id)
+      .single()
+
+    if (!product) {
       return NextResponse.json(
         { error: 'Variation not found or unauthorized' },
         { status: 404 }
