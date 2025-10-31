@@ -227,8 +227,34 @@ export function ProductsTableDynamic({
     [columnConfig, onEdit]
   )
 
+  // Global search state
+  const [globalFilter, setGlobalFilter] = React.useState('')
+
+  // Filter data based on global search
+  const filteredData = React.useMemo(() => {
+    if (!globalFilter) return data
+
+    const searchLower = globalFilter.toLowerCase()
+
+    return data.filter((row: Product) => {
+      // Search across all visible columns
+      for (const col of columns) {
+        if (col.id === 'actions') continue // Skip actions column
+
+        const colId = col.id ?? (col as unknown as { accessorKey?: string }).accessorKey
+        const value = row[colId as keyof Product]
+
+        if (value && String(value).toLowerCase().includes(searchLower)) {
+          return true
+        }
+      }
+
+      return false
+    })
+  }, [data, globalFilter, columns])
+
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -242,40 +268,15 @@ export function ProductsTableDynamic({
     },
   })
 
-  // Find first searchable column (codigo, name, or first available column)
-  const searchColumn = React.useMemo(() => {
-    // Try to find codigo or name columns (check accessorKey for dynamic columns)
-    const preferredColumn = columns.find((col) => {
-      const colId = col.id ?? (col as unknown as { accessorKey?: string }).accessorKey
-      return ['codigo', 'name'].includes(colId as string)
-    })
-
-    const preferredId = preferredColumn?.id ?? (preferredColumn as unknown as { accessorKey?: string })?.accessorKey
-
-    if (preferredId) {
-      return preferredId as string
-    }
-
-    // Fallback to first column that's not actions
-    const firstColumn = columns.find((col) => col.id !== 'actions')
-    const firstId = firstColumn?.id ?? (firstColumn as unknown as { accessorKey?: string })?.accessorKey
-
-    return (firstId as string) || 'name'
-  }, [columns])
-
   return (
     <div className="w-full space-y-4">
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <IconSearch className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar produtos..."
-            value={
-              (table.getColumn(searchColumn)?.getFilterValue() as string) ?? ''
-            }
-            onChange={(event) =>
-              table.getColumn(searchColumn)?.setFilterValue(event.target.value)
-            }
+            placeholder="Buscar em todos os campos..."
+            value={globalFilter}
+            onChange={(event) => setGlobalFilter(event.target.value)}
             className="pl-8"
           />
         </div>

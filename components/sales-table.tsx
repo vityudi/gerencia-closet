@@ -43,12 +43,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+type Product = {
+  id: string
+  codigo: string
+  name: string
+  descricao?: string
+}
+
 type SaleItem = {
   id: string
   product_id: string
   quantity: number
   unit_price: number
   subtotal: number
+  products?: Product
 }
 
 type Sale = {
@@ -337,15 +345,33 @@ export function SalesTable({ data }: SalesTableProps) {
                           <p className="font-semibold text-sm">Produtos ({row.original.sale_items.length}):</p>
                           <div className="space-y-1">
                             {row.original.sale_items.map((item) => (
-                              <div key={item.id} className="flex justify-between text-sm p-2 bg-background rounded border">
+                              <div key={item.id} className="flex justify-between text-sm p-3 bg-background rounded border">
                                 <div className="flex-1">
-                                  <p className="font-medium">Produto ID: {item.product_id.slice(0, 8)}...</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {item.quantity}x {new Intl.NumberFormat("pt-BR", {
-                                      style: "currency",
-                                      currency: "BRL",
-                                    }).format(item.unit_price)}
-                                  </p>
+                                  {item.products ? (
+                                    <>
+                                      <p className="font-medium text-base">{item.products.name}</p>
+                                      <p className="text-xs text-muted-foreground">Código: {item.products.codigo}</p>
+                                      {item.products.descricao && (
+                                        <p className="text-xs text-muted-foreground line-clamp-2">{item.products.descricao}</p>
+                                      )}
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        {item.quantity}x {new Intl.NumberFormat("pt-BR", {
+                                          style: "currency",
+                                          currency: "BRL",
+                                        }).format(item.unit_price)}
+                                      </p>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <p className="font-medium">Produto ID: {item.product_id}</p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {item.quantity}x {new Intl.NumberFormat("pt-BR", {
+                                          style: "currency",
+                                          currency: "BRL",
+                                        }).format(item.unit_price)}
+                                      </p>
+                                    </>
+                                  )}
                                 </div>
                                 <div className="text-right">
                                   <p className="font-medium">{new Intl.NumberFormat("pt-BR", {

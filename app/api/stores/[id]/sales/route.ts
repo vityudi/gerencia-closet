@@ -50,7 +50,13 @@ export async function GET(
           product_id,
           quantity,
           unit_price,
-          subtotal
+          subtotal,
+          products (
+            id,
+            codigo,
+            name,
+            descricao
+          )
         )
       `)
       .eq('store_id', id)
