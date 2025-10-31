@@ -45,7 +45,7 @@ export async function GET(
 
     // Fetch attribute options separately
     const attributeIds = attributes?.map((a) => a.id) || []
-    let attributeOptions: any[] = []
+    let attributeOptions: Array<{ id: string; attribute_id: string; value: string; position: number }> = []
 
     if (attributeIds.length > 0) {
       const { data: opts } = await supabase

@@ -318,6 +318,7 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await req.json()
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { productId, product_variations, ...updateData } = body
 
     if (!productId) {

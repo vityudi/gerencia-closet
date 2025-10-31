@@ -797,7 +797,6 @@ export function ProductEditDialog({
                       <h4 className="font-semibold text-base">Variações Secundárias</h4>
                       {secondaryVariations.map((step) => {
                         const attr = attributes.find((a) => a.id === step.attributeId)
-                        const options = attr?.product_attribute_options || []
 
                         return (
                           <div key={step.attributeId} className="border rounded-lg p-4 space-y-3">
