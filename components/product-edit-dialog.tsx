@@ -796,8 +796,6 @@ export function ProductEditDialog({
                     <div className="space-y-4">
                       <h4 className="font-semibold text-base">Variações Secundárias</h4>
                       {secondaryVariations.map((step) => {
-                        const attr = attributes.find((a) => a.id === step.attributeId)
-
                         return (
                           <div key={step.attributeId} className="border rounded-lg p-4 space-y-3">
                             <div className="flex items-center justify-between">

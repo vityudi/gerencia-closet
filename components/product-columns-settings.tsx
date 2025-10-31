@@ -47,12 +47,12 @@ interface ProductColumn {
   position: number
   column_type: string
   width: string
-  product_column_options?: Array<{ id: string; value: string; position: number }>
+  product_column_options?: ColumnOption[]
 }
 
 interface ColumnOption {
   id: string
-  column_id: string
+  column_id?: string
   value: string
   position: number
 }

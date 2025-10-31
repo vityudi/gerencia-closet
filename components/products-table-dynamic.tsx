@@ -245,11 +245,12 @@ export function ProductsTableDynamic({
   // Find first searchable column (codigo, name, or first available column)
   const searchColumn = React.useMemo(() => {
     // Try to find codigo or name columns (check accessorKey for dynamic columns)
-    const preferredColumn = columns.find((col) =>
-      ['codigo', 'name'].includes((col.id ?? col.accessorKey) as string)
-    )
+    const preferredColumn = columns.find((col) => {
+      const colId = col.id ?? (col as unknown as { accessorKey?: string }).accessorKey
+      return ['codigo', 'name'].includes(colId as string)
+    })
 
-    const preferredId = preferredColumn?.id || preferredColumn?.accessorKey
+    const preferredId = preferredColumn?.id ?? (preferredColumn as unknown as { accessorKey?: string })?.accessorKey
 
     if (preferredId) {
       return preferredId as string
@@ -257,7 +258,7 @@ export function ProductsTableDynamic({
 
     // Fallback to first column that's not actions
     const firstColumn = columns.find((col) => col.id !== 'actions')
-    const firstId = firstColumn?.id || firstColumn?.accessorKey
+    const firstId = firstColumn?.id ?? (firstColumn as unknown as { accessorKey?: string })?.accessorKey
 
     return (firstId as string) || 'name'
   }, [columns])

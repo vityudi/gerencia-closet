@@ -225,7 +225,7 @@ export async function POST(
     }
 
     // Build variations array that maps each product to its variation attributes
-    const variationsToInsert = []
+    const variationsToInsert: Array<{ product_id: string; attribute_id: string; value: string }> = []
     if (createdProducts && createdProducts.length > 0) {
       createdProducts.forEach((product, index) => {
         const combo = combinations[index]
